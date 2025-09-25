@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # BACKEND API SERVICE (STAGING)
+  # ==========================================================================
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: aldeia-backend-staging
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=staging
+      - PORT=3001
+      - DB_PATH=/app/data/aldeia.db
+      - DOCUMENTS_PATH=/app/data/documents
+      - JWT_SECRET=${JWT_SECRET_STAGING}
+      - LOG_LEVEL=debug
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./apps/backend/src:/app/src:ro
+    networks:
+      - aldeia-staging-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================================================
+  # CHATBOT FRONTEND SERVICE (STAGING)
+  # ==========================================================================
+  chatbot-frontend:
+    build:
+      context: ./apps/chatbot-frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: aldeia-chatbot-staging
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=staging
+      - NEXT_PUBLIC_API_URL=https://api-staging.aldeia.com
+    volumes:
+      - ./apps/chatbot-frontend/src:/app/src:ro
+    depends_on:
+      - backend
+    networks:
+      - aldeia-staging-network
+
+  # ==========================================================================
+  # REBUILD PLATFORM SERVICE (STAGING)
+  # ==========================================================================
+  rebuild-platform:
+    build:
+      context: ./apps/rebuild-platform
+      dockerfile: Dockerfile
+      target: development
+    container_name: aldeia-rebuild-staging
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=staging
+      - NEXT_PUBLIC_API_URL=https://api-staging.aldeia.com
+      - NEXT_PUBLIC_CHATBOT_URL=https://chatbot-staging.aldeia.com
+    volumes:
+      - ./apps/rebuild-platform/src:/app/src:ro
+    depends_on:
+      - backend
+    networks:
+      - aldeia-staging-network
+
+  # ==========================================================================
+  # NGINX REVERSE PROXY (STAGING)
+  # ==========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: aldeia-nginx-staging
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./nginx/nginx.staging.conf:/etc/nginx/nginx.conf:ro
+      - ./logs/nginx:/var/log/nginx:rw
+    depends_on:
+      - backend
+      - chatbot-frontend
+      - rebuild-platform
+    networks:
+      - aldeia-staging-network
+
+  # ==========================================================================
+  # DATABASE BACKUP SERVICE
+  # ==========================================================================
+  db-backup:
+    image: alpine:latest
+    container_name: aldeia-backup-staging
+    restart: "no"
+    volumes:
+      - ./data:/app/data:ro
+      - ./backups:/app/backups:rw
+    command: |
+      sh -c "
+        apk add --no-cache sqlite &&
+        mkdir -p /app/backups &&
+        sqlite3 /app/data/aldeia.db '.backup /app/backups/aldeia_backup_$(date +%Y%m%d_%H%M%S).db' &&
+        find /app/backups -name '*.db' -mtime +7 -delete
+      "
+    networks:
+      - aldeia-staging-network
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  aldeia-staging-network:
+    driver: bridge
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  staging-logs:

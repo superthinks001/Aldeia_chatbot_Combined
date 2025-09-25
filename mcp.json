@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "aldeia-advisor": {
+      "command": "node",
+      "args": ["./scripts/mcp-server.js"],
+      "cwd": ".",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  }
+}

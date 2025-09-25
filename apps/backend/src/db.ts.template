@@ -1,0 +1,125 @@
+import sqlite3 from 'sqlite3';
+import path from 'path';
+
+// Update database path for monorepo structure
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../../data/aldeia.db');
+
+export const db = new sqlite3.Database(DB_PATH, (err) => {
+    if (err) {
+        console.error('Error opening database:', err.message);
+    } else {
+        console.log('Connected to SQLite database at:', DB_PATH);
+    }
+});
+
+// Initialize database tables if they don't exist
+export const initializeDatabase = () => {
+    return new Promise((resolve, reject) => {
+        db.serialize(() => {
+            // Create users table
+            db.run(`CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                role TEXT DEFAULT 'user',
+                last_login DATETIME,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )`, (err) => {
+                if (err) {
+                    console.error('Error creating users table:', err);
+                    reject(err);
+                } else {
+                    console.log('Users table ready');
+                }
+            });
+
+            // Create tables as needed
+            db.run(`CREATE TABLE IF NOT EXISTS documents (
+                id TEXT PRIMARY KEY,
+                filename TEXT NOT NULL,
+                content TEXT NOT NULL,
+                file_path TEXT,
+                uploaded_by TEXT,
+                metadata TEXT DEFAULT '{}',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (uploaded_by) REFERENCES users (id)
+            )`, (err) => {
+                if (err) {
+                    console.error('Error creating documents table:', err);
+                    reject(err);
+                } else {
+                    console.log('Documents table ready');
+                }
+            });
+
+            db.run(`CREATE TABLE IF NOT EXISTS chat_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT UNIQUE NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )`, (err) => {
+                if (err) {
+                    console.error('Error creating chat_sessions table:', err);
+                    reject(err);
+                } else {
+                    console.log('Chat sessions table ready');
+                }
+            });
+
+            db.run(`CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                message TEXT NOT NULL,
+                response TEXT NOT NULL,
+                confidence REAL DEFAULT 0,
+                context TEXT DEFAULT '{}',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (session_id) REFERENCES chat_sessions (session_id)
+            )`, (err) => {
+                if (err) {
+                    console.error('Error creating messages table:', err);
+                    reject(err);
+                } else {
+                    console.log('Messages table ready');
+                }
+            });
+
+            db.run(`CREATE TABLE IF NOT EXISTS rebuild_projects (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                location TEXT NOT NULL,
+                preferences TEXT DEFAULT '{}',
+                status TEXT DEFAULT 'planning',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )`, (err) => {
+                if (err) {
+                    console.error('Error creating rebuild_projects table:', err);
+                    reject(err);
+                } else {
+                    console.log('Rebuild projects table ready');
+                }
+            });
+
+            db.run(`CREATE TABLE IF NOT EXISTS user_preferences (
+                user_id TEXT PRIMARY KEY,
+                preferences TEXT NOT NULL,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )`, (err) => {
+                if (err) {
+                    console.error('Error creating user_preferences table:', err);
+                    reject(err);
+                } else {
+                    console.log('User preferences table ready');
+                    resolve(undefined);
+                }
+            });
+        });
+    });
+};
+
+export default db;

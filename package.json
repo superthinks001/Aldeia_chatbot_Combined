@@ -1,0 +1,23 @@
+{
+  "name": "aldeia-combined",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "concurrently \"npm run dev -w apps/backend\" \"npm run dev -w apps/chatbot-frontend\" \"npm run dev -w apps/rebuild-platform\"",
+    "start": "npm run start --workspaces",
+    "lint": "npm run lint --workspaces",
+    "clean": "npm run clean --workspaces",
+    "backend:dev": "npm run dev -w apps/backend",
+    "frontend:dev": "npm run dev -w apps/chatbot-frontend",
+    "rebuild:dev": "npm run dev -w apps/rebuild-platform"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.0.0"
+  }
+}

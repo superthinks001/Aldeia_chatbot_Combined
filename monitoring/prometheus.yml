@@ -1,0 +1,51 @@
+# Prometheus Configuration for Aldeia Platform
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # Backend API monitoring
+  - job_name: 'aldeia-backend'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Frontend applications monitoring
+  - job_name: 'aldeia-frontend'
+    static_configs:
+      - targets: ['chatbot-frontend:3002', 'rebuild-platform:3000']
+    metrics_path: '/api/metrics'
+    scrape_interval: 60s
+
+  # Database monitoring
+  - job_name: 'sqlite-exporter'
+    static_configs:
+      - targets: ['sqlite-exporter:9102']
+    scrape_interval: 30s
+
+  # Nginx monitoring
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:9113']
+    scrape_interval: 30s

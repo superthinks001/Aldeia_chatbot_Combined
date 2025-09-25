@@ -1,0 +1,17 @@
+{
+  "name": "@aldeia/utils",
+  "version": "1.0.0",
+  "description": "Shared utilities for Aldeia platform",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@aldeia/shared-types": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
