@@ -493,7 +493,7 @@ router.post('/batch', async (req: Request, res: Response) => {
           operation: op.type,
           table: op.table,
           success: false,
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
       }
     }
@@ -546,7 +546,7 @@ router.get('/health', async (req: Request, res: Response) => {
       success: false,
       status: 'unhealthy',
       database: 'disconnected',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 });

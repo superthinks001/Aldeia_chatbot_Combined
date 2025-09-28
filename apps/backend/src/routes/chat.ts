@@ -16,23 +16,30 @@ const biasLogPath = path.join(__dirname, '../../bias_fairness.log');
 
 // Initialize MiniLM and ChromaDB once
 (async () => {
-  embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-  const chromaClient = new ChromaClient();
-  collection = await chromaClient.getOrCreateCollection({
-    name: 'fire_recovery_chunks',
-    metadata: { description: 'Paragraph chunks from LA/Pasadena County fire recovery PDFs' },
-    embeddingFunction: {
-      generate: async (_docs: string[]) => { throw new Error('embeddingFunction should not be called'); }
-    }
-  });
+  try {
+    embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    const chromaClient = new ChromaClient();
+    collection = await chromaClient.getOrCreateCollection({
+      name: 'fire_recovery_chunks',
+      metadata: { description: 'Paragraph chunks from LA/Pasadena County fire recovery PDFs' },
+      embeddingFunction: {
+        generate: async (_docs: string[]) => { throw new Error('embeddingFunction should not be called'); }
+      }
+    });
+    console.log('ChromaDB initialized successfully');
+  } catch (error) {
+    console.warn('ChromaDB initialization failed, continuing without vector search:', error instanceof Error ? error.message : String(error));
+    // Set embedder without ChromaDB for basic functionality
+    embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+  }
 })();
 
-// Ensure embedder and collection are initialized before handling requests
+// Ensure embedder is initialized before handling requests
 async function ensureInitialized() {
-  if (!embedder || !collection) {
+  if (!embedder) {
     // Wait for initialization (max 5 seconds)
     for (let i = 0; i < 10; i++) {
-      if (embedder && collection) return;
+      if (embedder) return;
       await new Promise(r => setTimeout(r, 500));
     }
   }
@@ -274,22 +281,28 @@ router.post('/', async (req: Request, res: Response) => {
     }
     const embeddingTensor = await embedder(contextText, { pooling: 'mean', normalize: true });
     const embedding = Array.from(embeddingTensor.data);
-    // Query ChromaDB for top 3 most similar chunks
-    const results = await collection.query({
-      queryEmbeddings: [embedding],
-      nResults: 3
-    });
-    // Log top 3 matches for debugging
-    for (let i = 0; i < Math.min(3, results.documents[0].length); i++) {
-      const m = results.documents[0][i];
-      console.log(`Match ${i + 1}:`, m.slice(0, 100), '| Source:', results.metadatas[0][i]?.source, '| Distance:', results.distances[0][i]);
+    
+    let matches = [];
+    if (collection) {
+      // Query ChromaDB for top 3 most similar chunks
+      const results = await collection.query({
+        queryEmbeddings: [embedding],
+        nResults: 3
+      });
+      // Log top 3 matches for debugging
+      for (let i = 0; i < Math.min(3, results.documents[0].length); i++) {
+        const m = results.documents[0][i];
+        console.log(`Match ${i + 1}:`, m.slice(0, 100), '| Source:', results.metadatas[0][i]?.source, '| Distance:', results.distances[0][i]);
+      }
+      matches = (results.documents[0] || []).map((text: string, i: number) => ({
+        text,
+        source: results.metadatas[0][i]?.source,
+        chunk_index: results.metadatas[0][i]?.chunk_index,
+        distance: results.distances[0][i]
+      }));
+    } else {
+      console.log('ChromaDB not available, providing general response');
     }
-    const matches = (results.documents[0] || []).map((text: string, i: number) => ({
-      text,
-      source: results.metadatas[0][i]?.source,
-      chunk_index: results.metadatas[0][i]?.chunk_index,
-      distance: results.distances[0][i]
-    }));
     // Check if the top match is good enough
     if (!matches.length || matches[0].distance === undefined || matches[0].distance > 2.0) {
       return res.json({
@@ -430,8 +443,11 @@ router.post('/search', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Missing query' });
   }
   try {
-    if (!embedder || !collection) {
-      return res.status(503).json({ error: 'Embedding model or ChromaDB not ready' });
+    if (!embedder) {
+      return res.status(503).json({ error: 'Embedding model not ready' });
+    }
+    if (!collection) {
+      return res.status(503).json({ error: 'ChromaDB not available - vector search disabled' });
     }
     // Generate embedding for the query
     const embeddingTensor = await embedder(query, { pooling: 'mean', normalize: true });
