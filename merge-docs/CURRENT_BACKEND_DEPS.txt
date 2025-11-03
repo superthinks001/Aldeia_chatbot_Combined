@@ -1,0 +1,72 @@
+aldeia-combined@1.0.0 /Users/gverma/Desktop/SuperThinks/Aldeia_chatbot_Combined
++-- @aldeia/backend@1.0.0 -> ./apps/backend
+| +-- @anthropic-ai/sdk@0.17.2
+| +-- @supabase/supabase-js@2.57.4
+| +-- @types/bcrypt@5.0.2
+| +-- @types/cors@2.8.19
+| +-- @types/express@4.17.23
+| +-- @types/jest@29.5.14
+| +-- @types/jsonwebtoken@9.0.10
+| +-- @types/multer@1.4.13
+| +-- @types/node@20.19.13
+| +-- @types/pdf-parse@1.1.5
+| +-- @typescript-eslint/eslint-plugin@6.21.0
+| +-- @typescript-eslint/parser@6.21.0
+| +-- @xenova/transformers@2.17.2
+| +-- axios@1.12.1
+| +-- bcrypt@5.1.1
+| +-- chromadb@1.10.5
+| +-- cors@2.8.5
+| +-- dotenv@16.6.1
+| +-- eslint@8.57.1
+| +-- express-rate-limit@6.11.2
+| +-- express@4.21.2
+| +-- helmet@7.2.0
+| +-- jest@29.7.0
+| +-- jsonwebtoken@9.0.2
+| +-- multer@1.4.5-lts.2
+| +-- pdf-parse@1.1.1
+| +-- sqlite3@5.1.7
+| +-- ts-node@10.9.2
+| +-- typescript@5.9.2
+| `-- winston@3.17.0
++-- @aldeia/chatbot-frontend@npm:fire-recovery-chatbot-frontend@0.1.0 extraneous -> ./apps/chatbot-frontend
++-- css-loader@6.11.0 extraneous
++-- cssesc@3.0.0 extraneous
++-- icss-utils@5.1.0 extraneous
++-- my-v0-project@ extraneous
++-- nanoid@3.3.11 extraneous
++-- postcss-modules-extract-imports@3.1.0 extraneous
++-- postcss-modules-local-by-default@4.2.0 extraneous
++-- postcss-modules-scope@3.2.1 extraneous
++-- postcss-modules-values@4.0.0 extraneous
++-- postcss-selector-parser@7.1.0 extraneous
++-- postcss-value-parser@4.2.0 extraneous
++-- postcss@8.5.6 extraneous
++-- prop-types@15.8.1 extraneous
++-- source-map-js@1.2.1 extraneous
+`-- style-loader@3.3.4 extraneous
+
+Package                               Current       Wanted   Latest  Location                                       Depended by
+@anthropic-ai/sdk                      0.17.2       0.17.2   0.68.0  node_modules/@anthropic-ai/sdk                 backend@npm:@aldeia/backend@1.0.0
+@supabase/supabase-js                  2.57.4       2.78.0   2.78.0  node_modules/@supabase/supabase-js             backend@npm:@aldeia/backend@1.0.0
+@types/bcrypt                           5.0.2        5.0.2    6.0.0  node_modules/@types/bcrypt                     backend@npm:@aldeia/backend@1.0.0
+@types/express                        4.17.23      4.17.25    5.0.5  node_modules/@types/express                    backend@npm:@aldeia/backend@1.0.0
+@types/jest                           29.5.14      29.5.14   30.0.0  node_modules/@types/jest                       backend@npm:@aldeia/backend@1.0.0
+@types/multer                          1.4.13       1.4.13    2.0.0  node_modules/@types/multer                     backend@npm:@aldeia/backend@1.0.0
+@types/node                          20.19.13     20.19.24  24.10.0  node_modules/@types/node                       backend@npm:@aldeia/backend@1.0.0
+@typescript-eslint/eslint-plugin       6.21.0       6.21.0   8.46.2  node_modules/@typescript-eslint/eslint-plugin  backend@npm:@aldeia/backend@1.0.0
+@typescript-eslint/parser              6.21.0       6.21.0   8.46.2  node_modules/@typescript-eslint/parser         backend@npm:@aldeia/backend@1.0.0
+axios                                  1.12.1       1.13.1   1.13.1  node_modules/axios                             backend@npm:@aldeia/backend@1.0.0
+bcrypt                                  5.1.1        5.1.1    6.0.0  node_modules/bcrypt                            backend@npm:@aldeia/backend@1.0.0
+chromadb                               1.10.5       1.10.5    3.1.0  node_modules/chromadb                          backend@npm:@aldeia/backend@1.0.0
+dotenv                                 16.6.1       16.6.1   17.2.3  node_modules/dotenv                            backend@npm:@aldeia/backend@1.0.0
+eslint                                 8.57.1       8.57.1   9.39.0  node_modules/eslint                            backend@npm:@aldeia/backend@1.0.0
+express                                4.21.2       4.21.2    5.1.0  node_modules/express                           backend@npm:@aldeia/backend@1.0.0
+express-rate-limit                     6.11.2       6.11.2    8.2.1  node_modules/express-rate-limit                backend@npm:@aldeia/backend@1.0.0
+helmet                                  7.2.0        7.2.0    8.1.0  node_modules/helmet                            backend@npm:@aldeia/backend@1.0.0
+jest                                   29.7.0       29.7.0   30.2.0  node_modules/jest                              backend@npm:@aldeia/backend@1.0.0
+multer                            1.4.5-lts.2  1.4.5-lts.2    2.0.2  node_modules/multer                            backend@npm:@aldeia/backend@1.0.0
+pdf-parse                               1.1.1        1.1.4    2.4.5  node_modules/pdf-parse                         backend@npm:@aldeia/backend@1.0.0
+typescript                              5.9.2        5.9.3    5.9.3  node_modules/typescript                        backend@npm:@aldeia/backend@1.0.0
+winston                                3.17.0       3.18.3   3.18.3  node_modules/winston                           backend@npm:@aldeia/backend@1.0.0
