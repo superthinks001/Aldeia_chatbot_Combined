@@ -3,8 +3,12 @@ import { pipeline } from '@xenova/transformers';
 import { ChromaClient } from 'chromadb';
 import fs from 'fs';
 import path from 'path';
-import { addOrUpdateUser, logAnalytics, getAnalyticsSummary, getUsers } from '../db';
+import { ConversationsService } from '../services/conversations.service';
+import { AnalyticsService } from '../services/analytics.service';
 import { findAllPDFs, extractTextFromPDF, reindexAllDocuments } from '../document_ingest';
+import { requireRole, requirePermission } from '../middleware/auth/authorize.middleware';
+import { UserRole, Permission } from '../types/auth.types';
+import { supabase } from '../config/database';
 
 const router = Router();
 
@@ -47,7 +51,8 @@ async function ensureInitialized() {
 
 function logErrorToFile(error: any, req: Request) {
   const logPath = path.join(__dirname, '../../error.log');
-  const logEntry = `\n[${new Date().toISOString()}]\nRequest: ${JSON.stringify({ url: req.url, body: req.body })}\nError: ${error instanceof Error ? error.stack : JSON.stringify(error)}\n`;
+  const userId = req.user?.userId || 'anonymous';
+  const logEntry = `\n[${new Date().toISOString()}]\nUser: ${userId}\nRequest: ${JSON.stringify({ url: req.url, body: req.body })}\nError: ${error instanceof Error ? error.stack : JSON.stringify(error)}\n`;
   fs.appendFileSync(logPath, logEntry);
 }
 
@@ -178,6 +183,10 @@ function getProactiveNotification(message: string, context: any): string | null 
 }
 
 router.post('/', async (req: Request, res: Response) => {
+  // Get authenticated user info
+  const userId = parseInt(req.user!.userId); // Convert string to number
+  const userEmail = req.user!.email;
+
   let { message, context, pageUrl, isFirstMessage, conversationId, userProfile } = req.body;
   // Sanitize all user input
   message = typeof message === 'string' ? sanitizeInput(message) : '';
@@ -185,6 +194,21 @@ router.post('/', async (req: Request, res: Response) => {
   pageUrl = typeof pageUrl === 'string' ? sanitizeInput(pageUrl) : '';
   isFirstMessage = Boolean(isFirstMessage);
   conversationId = typeof conversationId === 'string' ? conversationId : null;
+
+  // Create or get conversation from database
+  let conversation = null;
+  if (!isFirstMessage) {
+    conversation = await ConversationsService.createOrGetConversation(
+      userId,
+      conversationId || undefined,
+      undefined, // title - auto-generated later
+      userProfile?.language || 'en'
+    );
+    // Update conversationId if new conversation was created
+    if (conversation && !conversationId) {
+      conversationId = conversation.id;
+    }
+  }
 
   // Track context for conversation
   let convContext = conversationId ? (conversationContexts[conversationId] || { history: [] }) : { history: [] };
@@ -250,13 +274,22 @@ router.post('/', async (req: Request, res: Response) => {
     
     // If ambiguous, return a clarifying prompt with friendly tone
     if (ambiguous) {
+      const clarificationText = "I'd love to help you, but I'm not quite sure what you're asking. Could you please provide more details or rephrase your question? I'm here to assist with fire recovery information, permits, debris removal, rebuilding processes, and more.";
+
       // Add bot clarification to history
-      convContext.history.push({ sender: 'bot', text: "I'd love to help you, but I'm not quite sure what you're asking. Could you please provide more details or rephrase your question? I'm here to assist with fire recovery information, permits, debris removal, rebuilding processes, and more." });
+      convContext.history.push({ sender: 'bot', text: clarificationText });
       if (conversationId) conversationContexts[conversationId] = convContext;
+
+      // Store user message and bot clarification in database
+      if (conversation && conversationId) {
+        await ConversationsService.addMessage(conversationId, 'user', message, { intent, ambiguous: true });
+        await ConversationsService.addMessage(conversationId, 'bot', clarificationText, { intent, ambiguous: true, confidence: 0.3 });
+      }
+
       // Generate clarification options
       const clarificationOptions = generateClarificationOptions(message, convContext);
       return res.json({
-        response: "I'd love to help you, but I'm not quite sure what you're asking. Could you please provide more details or rephrase your question? I'm here to assist with fire recovery information, permits, debris removal, rebuilding processes, and more.",
+        response: clarificationText,
         confidence: 0.3,
         bias,
         uncertainty: true,
@@ -382,25 +415,66 @@ router.post('/', async (req: Request, res: Response) => {
       handoffMethod = 'email';
     }
 
-    // Log user message event
-    let userId: number | undefined = undefined;
-    if (userProfile && userProfile.email) {
-      await new Promise<void>((resolve) => {
-        addOrUpdateUser(userProfile, (err, id) => {
-          if (!err && id) userId = id;
-          resolve();
-        });
-      });
+    // Log user message event with new analytics service
+    await AnalyticsService.logEvent({
+      user_id: userId,
+      conversation_id: conversationId || undefined,
+      event_type: 'user_message',
+      message,
+      metadata: { userProfile, userEmail, intent }
+    });
+
+    // Store user message in conversation history
+    if (conversation && conversationId) {
+      await ConversationsService.addMessage(
+        conversationId,
+        'user',
+        message,
+        {
+          intent,
+          confidence,
+          bias,
+          ambiguous
+        }
+      );
     }
-    logAnalytics({ user_id: userId, conversation_id: conversationId, event_type: 'user_message', message, meta: { userProfile } });
 
     // Use enhanced response formatting
     const replyFormatted = formatResponse(reply, selected.source, bias);
+
     // Log bot response event
-    logAnalytics({ user_id: userId, conversation_id: conversationId, event_type: 'bot_response', message: replyFormatted, meta: { intent, bias, ambiguous, alternatives, notification } });
+    await AnalyticsService.logEvent({
+      user_id: userId,
+      conversation_id: conversationId || undefined,
+      event_type: 'bot_response',
+      message: replyFormatted,
+      metadata: { intent, bias, ambiguous, alternatives, notification, confidence }
+    });
+
+    // Store bot response in conversation history
+    if (conversation && conversationId) {
+      await ConversationsService.addMessage(
+        conversationId,
+        'bot',
+        replyFormatted,
+        {
+          intent,
+          confidence,
+          bias,
+          ambiguous
+        }
+      );
+    }
+
     // Log handoff event if needed
     if (handoffRequired) {
-      logAnalytics({ user_id: userId, conversation_id: conversationId, event_type: 'handoff', message, meta: { handoffMethod } });
+      await AnalyticsService.logEvent({
+        user_id: userId,
+        conversation_id: conversationId || undefined,
+        event_type: 'handoff',
+        message,
+        metadata: { handoffMethod }
+      });
     }
 
     res.json({
@@ -480,7 +554,7 @@ router.post('/search', async (req: Request, res: Response) => {
 });
 
 // Admin endpoint to fetch last 100 bias/fairness log entries
-router.get('/bias-logs', async (req: Request, res: Response) => {
+router.get('/bias-logs', requirePermission(Permission.VIEW_SYSTEM_LOGS), async (req: Request, res: Response) => {
   try {
     if (!fs.existsSync(biasLogPath)) {
       return res.json({ logs: [] });
@@ -494,48 +568,60 @@ router.get('/bias-logs', async (req: Request, res: Response) => {
 });
 
 // Admin endpoint: analytics summary
-router.get('/admin/analytics', async (_req: Request, res: Response) => {
-  getAnalyticsSummary((err, summary) => {
-    if (err) return res.status(500).json({ error: 'Failed to fetch analytics' });
+router.get('/admin/analytics', requirePermission(Permission.READ_ADVANCED_ANALYTICS), async (req: Request, res: Response) => {
+  try {
+    const summary = await AnalyticsService.getOverallSummary();
     res.json({ summary });
-  });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
 });
 
 // Admin endpoint: user list
-router.get('/admin/users', async (_req: Request, res: Response) => {
-  getUsers((err, users) => {
-    if (err) return res.status(500).json({ error: 'Failed to fetch users' });
-    res.json({ users });
-  });
+router.get('/admin/users', requirePermission(Permission.ADMIN_API_ACCESS), async (req: Request, res: Response) => {
+  try {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, name, email, county, language, role, is_active, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return res.status(500).json({ error: 'Failed to fetch users' });
+    }
+
+    res.json({ users: users || [] });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
 });
 
 // Document management endpoints
-router.get('/admin/documents', async (_req: Request, res: Response) => {
+router.get('/admin/documents', requirePermission(Permission.MANAGE_CONTENT), async (req: Request, res: Response) => {
   try {
     const workspaceRoot = path.resolve(__dirname, '../../../');
     const laCountyDir = path.join(workspaceRoot, "chatbot/frontend/public/LA County");
     const pasadenaCountyDir = path.join(workspaceRoot, "chatbot/frontend/public/Pasadena County");
-    
-    const laCountyPDFs = findAllPDFs(laCountyDir).map((pdf: string) => ({ 
-      path: pdf, 
+
+    const laCountyPDFs = findAllPDFs(laCountyDir).map((pdf: string) => ({
+      path: pdf,
       name: path.basename(pdf),
       county: 'LA County',
       indexed: true // Assume indexed for now
     }));
-    const pasadenaCountyPDFs = findAllPDFs(pasadenaCountyDir).map((pdf: string) => ({ 
-      path: pdf, 
+    const pasadenaCountyPDFs = findAllPDFs(pasadenaCountyDir).map((pdf: string) => ({
+      path: pdf,
       name: path.basename(pdf),
       county: 'Pasadena County',
       indexed: true // Assume indexed for now
     }));
-    
+
     res.json({ documents: [...laCountyPDFs, ...pasadenaCountyPDFs] });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch documents' });
   }
 });
 
-router.post('/admin/documents/reindex', async (_req: Request, res: Response) => {
+router.post('/admin/documents/reindex', requirePermission(Permission.MANAGE_CONTENT), async (req: Request, res: Response) => {
   try {
     const result = await reindexAllDocuments();
     res.json({ message: 'Document reindexing completed', result });
@@ -544,7 +630,7 @@ router.post('/admin/documents/reindex', async (_req: Request, res: Response) => 
   }
 });
 
-router.post('/admin/documents/upload', async (req: Request, res: Response) => {
+router.post('/admin/documents/upload', requirePermission(Permission.MANAGE_CONTENT), async (req: Request, res: Response) => {
   try {
     // Handle file upload (placeholder for now)
     res.json({ message: 'File upload endpoint - implementation pending' });

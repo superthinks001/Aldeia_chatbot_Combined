@@ -24,17 +24,30 @@ export async function initConnection(): Promise<void> {
 
   if (config.type === 'postgres' && config.postgres) {
     if (!pgPool) {
-      pgPool = new Pool({
-        host: config.postgres.host,
-        port: config.postgres.port,
-        database: config.postgres.database,
-        user: config.postgres.user,
-        password: config.postgres.password,
-        ssl: config.postgres.ssl ? { rejectUnauthorized: false } : false,
-        max: config.postgres.max,
-        idleTimeoutMillis: config.postgres.idleTimeoutMillis,
-        connectionTimeoutMillis: config.postgres.connectionTimeoutMillis
-      });
+      // Use connection string if DATABASE_URL is available (better handling of special chars)
+      const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
+
+      if (connectionString) {
+        pgPool = new Pool({
+          connectionString,
+          ssl: { rejectUnauthorized: false },
+          max: config.postgres.max,
+          idleTimeoutMillis: config.postgres.idleTimeoutMillis,
+          connectionTimeoutMillis: config.postgres.connectionTimeoutMillis
+        });
+      } else {
+        pgPool = new Pool({
+          host: config.postgres.host,
+          port: config.postgres.port,
+          database: config.postgres.database,
+          user: config.postgres.user,
+          password: config.postgres.password,
+          ssl: config.postgres.ssl ? { rejectUnauthorized: false } : false,
+          max: config.postgres.max,
+          idleTimeoutMillis: config.postgres.idleTimeoutMillis,
+          connectionTimeoutMillis: config.postgres.connectionTimeoutMillis
+        });
+      }
 
       // Test connection
       try {

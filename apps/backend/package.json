@@ -11,9 +11,13 @@
     "lint": "eslint src/**/*.ts",
     "clean": "rm -rf dist",
     "db:migrate": "ts-node src/database/migrations/run-migrations.ts",
+    "db:migrate:supabase": "ts-node src/database/migrate.ts",
     "db:seed": "ts-node src/database/seeds/dev-data.ts",
     "db:seed:dev": "npm run db:seed",
-    "db:reset": "rm -f aldeia.db && npm run db:migrate && npm run db:seed"
+    "db:reset": "rm -f aldeia.db && npm run db:migrate && npm run db:seed",
+    "migrate": "ts-node src/database/migrate.ts",
+    "migrate:create": "node src/database/create-migration.js",
+    "migrate:data": "ts-node src/database/migrate-data.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.17.1",

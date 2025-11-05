@@ -142,7 +142,7 @@ async function migrateAnalytics() {
 
           const values = [
             row.user_id,
-            row.conversation_id,
+            null,  // conversation_id set to NULL (old data doesn't have valid conversation references)
             row.event_type,
             row.message,
             meta ? JSON.stringify(meta) : null,

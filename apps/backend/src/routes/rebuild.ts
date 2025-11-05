@@ -17,6 +17,13 @@ router.use(sanitizeInput);
 
 router.get('/projects', authenticateToken, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const userId = req.user.userId;
     const { status, limit = 20, offset = 0 } = req.query;
 
@@ -74,6 +81,13 @@ interface CreateProjectRequest {
 
 router.post('/projects', authenticateToken, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const userId = req.user.userId;
     const { name, location, preferences = {} }: CreateProjectRequest = req.body;
 
@@ -119,6 +133,13 @@ router.post('/projects', authenticateToken, async (req: Request, res: Response) 
 
 router.put('/projects/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const { id } = req.params;
     const userId = req.user.userId;
     const updates = req.body;
@@ -247,6 +268,13 @@ interface PreferencesRequest {
 
 router.post('/preferences', authenticateToken, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const userId = req.user.userId;
     const preferences: PreferencesRequest = req.body;
 
@@ -274,6 +302,13 @@ router.post('/preferences', authenticateToken, async (req: Request, res: Respons
 
 router.get('/preferences', authenticateToken, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const userId = req.user.userId;
 
     const preferences = await getUserPreferences(userId);
@@ -302,7 +337,7 @@ async function getProjects(query: string, params: any[]): Promise<any[]> {
       if (err) {
         reject(err);
       } else {
-        const projects = rows.map(row => ({
+        const projects = (rows as any[]).map((row: any) => ({
           ...row,
           location: JSON.parse(row.location || '{}'),
           preferences: JSON.parse(row.preferences || '{}')
@@ -323,10 +358,11 @@ async function getProjectById(id: string): Promise<any> {
           reject(err);
         } else {
           if (row) {
+            const typedRow = row as any;
             resolve({
-              ...row,
-              location: JSON.parse(row.location || '{}'),
-              preferences: JSON.parse(row.preferences || '{}')
+              ...typedRow,
+              location: JSON.parse(typedRow.location || '{}'),
+              preferences: JSON.parse(typedRow.preferences || '{}')
             });
           } else {
             resolve(null);

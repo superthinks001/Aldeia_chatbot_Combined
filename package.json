@@ -14,10 +14,15 @@
     "clean": "npm run clean --workspaces",
     "backend:dev": "npm run dev -w apps/backend",
     "frontend:dev": "npm run dev -w apps/chatbot-frontend",
-    "rebuild:dev": "npm run dev -w apps/rebuild-platform"
+    "rebuild:dev": "npm run dev -w apps/rebuild-platform",
+    "migrate:data": "ts-node src/database/migrate-data.ts"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "pg": "^8.16.3"
   }
 }
