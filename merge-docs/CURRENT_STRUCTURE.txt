@@ -1,0 +1,163 @@
+.
+./.claude
+./.claude/settings.local.json
+./.git
+./.gitattributes
+./.gitignore
+./2025_Parcels_with_DINS_data.numbers
+./2025_Parcels_with_DINS_data_6170566393412991617.csv
+./Aldeia Data Schema.docx
+./Aldeia UI Screenshots
+./Aldeia UI Screenshots/.git
+./Aldeia UI Screenshots/Confirm Rebuild Location_2.jpg
+./Aldeia UI Screenshots/MainLandingPage.jpg
+./Aldeia UI Screenshots/Preapproved Design Matches.jpg
+./Aldeia UI Screenshots/Selected Design Details_V1.jpg
+./Aldeia UI Screenshots/Something New_Rebuild.jpg
+./Aldeia UI Screenshots/User Preferences_Needs.jpg
+./Aldeia UI Screenshots/User Preferences_Style.jpg
+./Aldeia.code-workspace
+./Chatbot PRD's
+./Chatbot PRD's/6.7 Multi-Turn Context and Conversation Memory.docx
+./Chatbot PRD's/ChatGPT Chatbot Final Updated PRD.docx
+./Chatbot PRD's/ChatGPT Chatbot Final V2 PRD.docx
+./Chatbot PRD's/ChatGPT Chatbot PRD.docx
+./Chatbot PRD's/Chatbot PRD Gemini w Monetization Strategy FINAL.docx
+./Chatbot PRD's/Claude Chatbot PRD.docx
+./Chatbot PRD's/Claude Chatbot V2 PRD.docx
+./Chatbot PRD's/Combined Chatbot PRD Gemini.docx
+./Chatbot PRD's/Combined Chatbot V2 PRD Gemini w Monetization Strategy.docx
+./Chatbot Traning Data PDF's Links.docx
+./DEPLOYMENT.md
+./README.md
+./TestDataAINADD.numbers
+./aldeia.db
+./apps
+./apps/aldeia.db
+./apps/backend
+./apps/backend/.env
+./apps/backend/Dockerfile
+./apps/backend/dist
+./apps/backend/package.json
+./apps/backend/package.json.template
+./apps/backend/src
+./apps/backend/src/db.ts
+./apps/backend/src/db.ts.template
+./apps/backend/src/document_ingest.ts
+./apps/backend/src/index.ts
+./apps/backend/src/middleware
+./apps/backend/src/routes
+./apps/backend/src/tests
+./apps/backend/src/utils
+./apps/backend/test.js
+./apps/backend/tsconfig.json
+./apps/chat
+./apps/chat/route.ts
+./apps/chat/search
+./apps/chat/search/route.ts
+./apps/chatbot-frontend
+./apps/chatbot-frontend/dist
+./apps/chatbot-frontend/node_modules
+./apps/chatbot-frontend/package-lock.json
+./apps/chatbot-frontend/package.json
+./apps/chatbot-frontend/package.json.template
+./apps/chatbot-frontend/public
+./apps/chatbot-frontend/public/LA County
+./apps/chatbot-frontend/public/Pasadena County
+./apps/chatbot-frontend/public/aldeia-advisor.js
+./apps/chatbot-frontend/public/demo.html
+./apps/chatbot-frontend/public/index.html
+./apps/chatbot-frontend/src
+./apps/chatbot-frontend/src/App.tsx
+./apps/chatbot-frontend/src/components
+./apps/chatbot-frontend/src/hooks
+./apps/chatbot-frontend/src/index.tsx
+./apps/chatbot-frontend/src/lib
+./apps/chatbot-frontend/src/utils
+./apps/chatbot-frontend/tsconfig.json
+./apps/chatbot-frontend/webpack.config.js
+./chatbot
+./chatbot/.git
+./chatbot/.gitattributes
+./chatbot/.gitignore
+./chatbot/Aldeia.code-workspace
+./chatbot/DEPLOYMENT.md
+./chatbot/README.md
+./chatbot/aldeia.db
+./chatbot/backend
+./chatbot/backend/Dockerfile
+./chatbot/backend/dist
+./chatbot/backend/error.log
+./chatbot/backend/node_modules
+./chatbot/backend/package-lock.json
+./chatbot/backend/package.json
+./chatbot/backend/server.cert
+./chatbot/backend/server.key
+./chatbot/backend/src
+./chatbot/backend/src/db.ts
+./chatbot/backend/src/document_ingest.ts
+./chatbot/backend/src/index.ts
+./chatbot/backend/src/middleware
+./chatbot/backend/src/routes
+./chatbot/backend/tsconfig.json
+./chatbot/docker-compose.yml
+./chatbot/document_ingest.ts
+./chatbot/frontend
+./chatbot/frontend/dist
+./chatbot/frontend/node_modules
+./chatbot/frontend/package-lock.json
+./chatbot/frontend/package.json
+./chatbot/frontend/public
+./chatbot/frontend/public/LA County
+./chatbot/frontend/public/Pasadena County
+./chatbot/frontend/public/aldeia-advisor.js
+./chatbot/frontend/public/demo.html
+./chatbot/frontend/public/index.html
+./chatbot/frontend/src
+./chatbot/frontend/src/App.tsx
+./chatbot/frontend/src/components
+./chatbot/frontend/src/index.tsx
+./chatbot/frontend/src/utils
+./chatbot/frontend/tsconfig.json
+./chatbot/frontend/webpack.config.js
+./data
+./data/documents
+./docker-compose.production.yml
+./docker-compose.staging.yml
+./docker-compose.yml
+./document_ingest.ts
+./embedding_sample.json
+./mcp.json
+./merge-docs
+./merge-docs/CURRENT_STRUCTURE.txt
+./merge-docs/MERGE_LOG.md
+./migration-script.sh
+./monitoring
+./monitoring/alert_rules.yml
+./monitoring/prometheus.yml
+./node_modules
+./package-lock.json
+./package.json
+./packages
+./packages/shared-types
+./packages/shared-types/index.ts
+./packages/shared-types/package.json
+./packages/shared-types/tsconfig.json
+./packages/ui-components
+./packages/ui-components/index.ts
+./packages/ui-components/package.json
+./packages/ui-components/src
+./packages/ui-components/src/BiasWarning.tsx
+./packages/ui-components/src/ChatWidget.tsx
+./packages/ui-components/src/ConfidenceBadge.tsx
+./packages/ui-components/src/InputBox.tsx
+./packages/ui-components/src/MessageList.tsx
+./packages/ui-components/src/types.ts
+./packages/ui-components/tsconfig.json
+./packages/utils
+./packages/utils/index.ts
+./packages/utils/package.json
+./packages/utils/tsconfig.json
+./scripts
+./scripts/deploy.sh
+./setup.sh

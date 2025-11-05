@@ -26,6 +26,12 @@ router.use(sanitizeInput_1.sanitizeInput);
 // ====================================================================
 router.get('/projects', auth_1.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const userId = req.user.userId;
         const { status, limit = 20, offset = 0 } = req.query;
         let query = 'SELECT * FROM rebuild_projects WHERE user_id = ?';
@@ -57,6 +63,12 @@ router.get('/projects', auth_1.authenticateToken, (req, res) => __awaiter(void 0
 }));
 router.post('/projects', auth_1.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const userId = req.user.userId;
         const { name, location, preferences = {} } = req.body;
         // Validation
@@ -95,6 +107,12 @@ router.post('/projects', auth_1.authenticateToken, (req, res) => __awaiter(void 
 // ====================================================================
 router.put('/projects/:id', auth_1.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const { id } = req.params;
         const userId = req.user.userId;
         const updates = req.body;
@@ -195,6 +213,12 @@ router.get('/designs', (req, res) => __awaiter(void 0, void 0, void 0, function*
 }));
 router.post('/preferences', auth_1.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const userId = req.user.userId;
         const preferences = req.body;
         yield saveUserPreferences(userId, preferences);
@@ -217,6 +241,12 @@ router.post('/preferences', auth_1.authenticateToken, (req, res) => __awaiter(vo
 // ====================================================================
 router.get('/preferences', auth_1.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const userId = req.user.userId;
         const preferences = yield getUserPreferences(userId);
         res.json({
@@ -243,7 +273,7 @@ function getProjects(query, params) {
                     reject(err);
                 }
                 else {
-                    const projects = rows.map(row => (Object.assign(Object.assign({}, row), { location: JSON.parse(row.location || '{}'), preferences: JSON.parse(row.preferences || '{}') })));
+                    const projects = rows.map((row) => (Object.assign(Object.assign({}, row), { location: JSON.parse(row.location || '{}'), preferences: JSON.parse(row.preferences || '{}') })));
                     resolve(projects);
                 }
             });
@@ -259,7 +289,8 @@ function getProjectById(id) {
                 }
                 else {
                     if (row) {
-                        resolve(Object.assign(Object.assign({}, row), { location: JSON.parse(row.location || '{}'), preferences: JSON.parse(row.preferences || '{}') }));
+                        const typedRow = row;
+                        resolve(Object.assign(Object.assign({}, typedRow), { location: JSON.parse(typedRow.location || '{}'), preferences: JSON.parse(typedRow.preferences || '{}') }));
                     }
                     else {
                         resolve(null);

@@ -1,0 +1,8 @@
+# Remove is_active from insert
+s/      is_active: true,//g
+# Remove is_active filter from select (change to just checking expiry)
+s/.eq('is_active', true)//g
+# Remove update is_active to false (change to DELETE)
+s/.update({ is_active: false })/.delete()/g
+# Remove last_used_at update
+/update.*last_used_at/d

@@ -1,0 +1,198 @@
+.DS_Store
+.gitattributes
+.gitignore
+2025_Parcels_with_DINS_data.numbers
+2025_Parcels_with_DINS_data_6170566393412991617.csv
+Aldeia Data Schema.docx
+Aldeia UI Screenshots
+Aldeia.code-workspace
+Chatbot PRD's/.DS_Store
+Chatbot PRD's/6.7 Multi-Turn Context and Conversation Memory.docx
+Chatbot PRD's/ChatGPT Chatbot Final Updated PRD.docx
+Chatbot PRD's/ChatGPT Chatbot Final V2 PRD.docx
+Chatbot PRD's/ChatGPT Chatbot PRD.docx
+Chatbot PRD's/Chatbot PRD Gemini w Monetization Strategy FINAL.docx
+Chatbot PRD's/Claude Chatbot PRD.docx
+Chatbot PRD's/Claude Chatbot V2 PRD.docx
+Chatbot PRD's/Combined Chatbot PRD Gemini.docx
+Chatbot PRD's/Combined Chatbot V2 PRD Gemini w Monetization Strategy.docx
+Chatbot Traning Data PDF's Links.docx
+DEPLOYMENT.md
+README.md
+TestDataAINADD.numbers
+aldeia.db
+apps/.DS_Store
+apps/aldeia.db
+apps/backend/.DS_Store
+apps/backend/.env
+apps/backend/Dockerfile
+apps/backend/dist/.DS_Store
+apps/backend/dist/db.js
+apps/backend/dist/document_ingest.js
+apps/backend/dist/index.js
+apps/backend/dist/middleware/rateLimit.js
+apps/backend/dist/middleware/sanitizeInput.js
+apps/backend/dist/routes/ai-database.js
+apps/backend/dist/routes/auth.js
+apps/backend/dist/routes/chat.js
+apps/backend/dist/routes/documents.js
+apps/backend/dist/routes/index.js
+apps/backend/dist/routes/rebuild.js
+apps/backend/dist/tests/tests-ai-database.js
+apps/backend/dist/utils/logger.js
+apps/backend/package.json
+apps/backend/package.json.template
+apps/backend/src/db.ts
+apps/backend/src/db.ts.template
+apps/backend/src/document_ingest.ts
+apps/backend/src/index.ts
+apps/backend/src/middleware/rateLimit.ts
+apps/backend/src/middleware/sanitizeInput.ts
+apps/backend/src/routes/ai-database.ts
+apps/backend/src/routes/auth.ts
+apps/backend/src/routes/chat.ts
+apps/backend/src/routes/documents.ts
+apps/backend/src/routes/index.ts
+apps/backend/src/routes/rebuild.ts
+apps/backend/src/tests/tests-ai-database.ts
+apps/backend/src/utils/logger.ts
+apps/backend/test.js
+apps/backend/tsconfig.json
+apps/chat/.DS_Store
+apps/chat/route.ts
+apps/chat/search/route.ts
+apps/chatbot-frontend/.DS_Store
+apps/chatbot-frontend/dist/bundle.js
+apps/chatbot-frontend/dist/bundle.js.LICENSE.txt
+apps/chatbot-frontend/dist/index.html
+apps/chatbot-frontend/package-lock.json
+apps/chatbot-frontend/package.json
+apps/chatbot-frontend/package.json.template
+apps/chatbot-frontend/public/.DS_Store
+apps/chatbot-frontend/public/LA County/.DS_Store
+apps/chatbot-frontend/public/LA County/1176746_RightofEntryFormFAQs.pdf
+apps/chatbot-frontend/public/LA County/1176747_Phase1HazardousDebrisRemovalbyUSEnvironmentalProtectionAgencyFAQs.pdf
+apps/chatbot-frontend/public/LA County/1176748_Phase2DebrisRemovalbyUSArmyCorpsofEngineersFAQs.pdf
+apps/chatbot-frontend/public/LA County/1177736_ManagementofLosAngelesCountyWildfireDebris.pdf
+apps/chatbot-frontend/public/LA County/1177791_2025WildfiresFAQOptOutOption.pdf
+apps/chatbot-frontend/public/LA County/1178355_FireRebuildFAQ.pdf
+apps/chatbot-frontend/public/LA County/1178572_PropertyOwnerGuidetoSelectCertifiedContractorforOpt-Outs.pdf
+apps/chatbot-frontend/public/LA County/1178767_Opt-OutStepsforWebsiteFINAL.pdf
+apps/chatbot-frontend/public/LA County/1178768_EPICLAInstructions-FireDebrisRemovalLocalProgramFINAL.pdf
+apps/chatbot-frontend/public/LA County/1178769_FDRPermit-Contractor_sGuideRequirementsFINAL.pdf
+apps/chatbot-frontend/public/LA County/1179229_PermittedWasteDisposalFacilitiesintheRegion.pdf
+apps/chatbot-frontend/public/LA County/2025-1-14.LA-Fires-K-12-and-Child-Care-EO.FINAL_.pdf
+apps/chatbot-frontend/public/LA County/2025_0311 FAQ Short.pdf
+apps/chatbot-frontend/public/LA County/RSIC Irrigation System_PP.pdf
+apps/chatbot-frontend/public/Pasadena County/.DS_Store
+apps/chatbot-frontend/public/Pasadena County/Bulletin-1-2025-Disaster.pdf
+apps/chatbot-frontend/public/Pasadena County/Bulletin-4-Next-Day-Inspections.pdf
+apps/chatbot-frontend/public/Pasadena County/Bulletin-6-Lithium-Iron-Batteries-Burned-by-Wildfires.pdf
+apps/chatbot-frontend/public/Pasadena County/Bulletin-8-Phase-1-Hazardous-Material-Removal-Update.pdf
+apps/chatbot-frontend/public/Pasadena County/HOMEOWNERSGUIDE.pdf
+apps/chatbot-frontend/public/Pasadena County/Pasadena-Local-Opt-Out-Debris-Removal-Supplemental-Application.pdf
+apps/chatbot-frontend/public/aldeia-advisor.js
+apps/chatbot-frontend/public/demo.html
+apps/chatbot-frontend/public/index.html
+apps/chatbot-frontend/src/.DS_Store
+apps/chatbot-frontend/src/App.tsx
+apps/chatbot-frontend/src/components/.DS_Store
+apps/chatbot-frontend/src/components/AdminDashboard.tsx
+apps/chatbot-frontend/src/components/AldeiaAdvisorChatbot.tsx
+apps/chatbot-frontend/src/components/BiasLogsAdmin.tsx
+apps/chatbot-frontend/src/components/BiasWarning.tsx
+apps/chatbot-frontend/src/components/ChatWidget.tsx
+apps/chatbot-frontend/src/components/ConfidenceBadge.tsx
+apps/chatbot-frontend/src/components/InputBox.tsx
+apps/chatbot-frontend/src/components/MessageList.tsx
+apps/chatbot-frontend/src/components/selected-design-details.tsx
+apps/chatbot-frontend/src/components/theme-provider.tsx
+apps/chatbot-frontend/src/components/ui/accordion.tsx
+apps/chatbot-frontend/src/components/ui/alert-dialog.tsx
+apps/chatbot-frontend/src/components/ui/alert.tsx
+apps/chatbot-frontend/src/components/ui/aspect-ratio.tsx
+apps/chatbot-frontend/src/components/ui/avatar.tsx
+apps/chatbot-frontend/src/components/ui/badge.tsx
+apps/chatbot-frontend/src/components/ui/breadcrumb.tsx
+apps/chatbot-frontend/src/components/ui/button.tsx
+apps/chatbot-frontend/src/components/ui/calendar.tsx
+apps/chatbot-frontend/src/components/ui/card.tsx
+apps/chatbot-frontend/src/components/ui/carousel.tsx
+apps/chatbot-frontend/src/components/ui/chart.tsx
+apps/chatbot-frontend/src/components/ui/checkbox.tsx
+apps/chatbot-frontend/src/components/ui/collapsible.tsx
+apps/chatbot-frontend/src/components/ui/command.tsx
+apps/chatbot-frontend/src/components/ui/context-menu.tsx
+apps/chatbot-frontend/src/components/ui/dialog.tsx
+apps/chatbot-frontend/src/components/ui/drawer.tsx
+apps/chatbot-frontend/src/components/ui/dropdown-menu.tsx
+apps/chatbot-frontend/src/components/ui/form.tsx
+apps/chatbot-frontend/src/components/ui/hover-card.tsx
+apps/chatbot-frontend/src/components/ui/input-otp.tsx
+apps/chatbot-frontend/src/components/ui/input.tsx
+apps/chatbot-frontend/src/components/ui/label.tsx
+apps/chatbot-frontend/src/components/ui/menubar.tsx
+apps/chatbot-frontend/src/components/ui/navigation-menu.tsx
+apps/chatbot-frontend/src/components/ui/pagination.tsx
+apps/chatbot-frontend/src/components/ui/popover.tsx
+apps/chatbot-frontend/src/components/ui/progress.tsx
+apps/chatbot-frontend/src/components/ui/radio-group.tsx
+apps/chatbot-frontend/src/components/ui/resizable.tsx
+apps/chatbot-frontend/src/components/ui/scroll-area.tsx
+apps/chatbot-frontend/src/components/ui/select.tsx
+apps/chatbot-frontend/src/components/ui/separator.tsx
+apps/chatbot-frontend/src/components/ui/sheet.tsx
+apps/chatbot-frontend/src/components/ui/sidebar.tsx
+apps/chatbot-frontend/src/components/ui/skeleton.tsx
+apps/chatbot-frontend/src/components/ui/slider.tsx
+apps/chatbot-frontend/src/components/ui/sonner.tsx
+apps/chatbot-frontend/src/components/ui/switch.tsx
+apps/chatbot-frontend/src/components/ui/table.tsx
+apps/chatbot-frontend/src/components/ui/tabs.tsx
+apps/chatbot-frontend/src/components/ui/textarea.tsx
+apps/chatbot-frontend/src/components/ui/toast.tsx
+apps/chatbot-frontend/src/components/ui/toaster.tsx
+apps/chatbot-frontend/src/components/ui/toggle-group.tsx
+apps/chatbot-frontend/src/components/ui/toggle.tsx
+apps/chatbot-frontend/src/components/ui/tooltip.tsx
+apps/chatbot-frontend/src/components/ui/use-mobile.tsx
+apps/chatbot-frontend/src/components/ui/use-toast.ts
+apps/chatbot-frontend/src/hooks/use-mobile.ts
+apps/chatbot-frontend/src/hooks/use-toast.ts
+apps/chatbot-frontend/src/index.tsx
+apps/chatbot-frontend/src/lib/utils.ts
+apps/chatbot-frontend/src/utils/contextScraper.ts
+apps/chatbot-frontend/tsconfig.json
+apps/chatbot-frontend/webpack.config.js
+chatbot
+data/.DS_Store
+docker-compose.production.yml
+docker-compose.staging.yml
+docker-compose.yml
+document_ingest.ts
+embedding_sample.json
+mcp.json
+migration-script.sh
+monitoring/alert_rules.yml
+monitoring/prometheus.yml
+package-lock.json
+package.json
+packages/.DS_Store
+packages/shared-types/index.ts
+packages/shared-types/package.json
+packages/shared-types/tsconfig.json
+packages/ui-components/.DS_Store
+packages/ui-components/index.ts
+packages/ui-components/package.json
+packages/ui-components/src/BiasWarning.tsx
+packages/ui-components/src/ChatWidget.tsx
+packages/ui-components/src/ConfidenceBadge.tsx
+packages/ui-components/src/InputBox.tsx
+packages/ui-components/src/MessageList.tsx
+packages/ui-components/src/types.ts
+packages/ui-components/tsconfig.json
+packages/utils/index.ts
+packages/utils/package.json
+packages/utils/tsconfig.json
+scripts/deploy.sh
+setup.sh

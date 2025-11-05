@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { db } from '../db';
 import { logger } from '../utils/logger';
@@ -13,7 +13,20 @@ const router = express.Router();
 router.use(sanitizeInput);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-change-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '24h') as string | number;
+
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: string;
+        email: string;
+        role: string;
+      };
+    }
+  }
+}
 
 // ====================================================================
 // AUTH MIDDLEWARE - Used by protected routes
@@ -112,13 +125,13 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role
       },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_EXPIRES_IN } as SignOptions
     );
 
     logger.info(`New user registered: ${user.email}`);
@@ -195,13 +208,13 @@ router.post('/login', async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role
       },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_EXPIRES_IN } as SignOptions
     );
 
     // Update last login
@@ -239,6 +252,13 @@ router.post('/login', async (req: Request, res: Response) => {
 
 router.get('/profile', authenticateToken, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const userId = req.user.userId;
     const user = await getUserById(userId);
 
@@ -282,6 +302,13 @@ interface UpdateProfileRequest {
 
 router.put('/profile', authenticateToken, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const userId = req.user.userId;
     const { name, email, currentPassword, newPassword }: UpdateProfileRequest = req.body;
 
@@ -382,9 +409,11 @@ router.put('/profile', authenticateToken, async (req: Request, res: Response) =>
 router.post('/logout', authenticateToken, (req: Request, res: Response) => {
   // In a stateless JWT system, logout is handled client-side by removing the token
   // For more security, you could implement a token blacklist
-  
-  logger.info(`User logged out: ${req.user.email}`);
-  
+
+  if (req.user) {
+    logger.info(`User logged out: ${req.user.email}`);
+  }
+
   res.json({
     success: true,
     message: 'Logged out successfully'

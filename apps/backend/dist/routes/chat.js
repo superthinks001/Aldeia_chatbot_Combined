@@ -26,23 +26,31 @@ let collection = null;
 const biasLogPath = path_1.default.join(__dirname, '../../bias_fairness.log');
 // Initialize MiniLM and ChromaDB once
 (() => __awaiter(void 0, void 0, void 0, function* () {
-    embedder = yield (0, transformers_1.pipeline)('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-    const chromaClient = new chromadb_1.ChromaClient();
-    collection = yield chromaClient.getOrCreateCollection({
-        name: 'fire_recovery_chunks',
-        metadata: { description: 'Paragraph chunks from LA/Pasadena County fire recovery PDFs' },
-        embeddingFunction: {
-            generate: (_docs) => __awaiter(void 0, void 0, void 0, function* () { throw new Error('embeddingFunction should not be called'); })
-        }
-    });
+    try {
+        embedder = yield (0, transformers_1.pipeline)('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+        const chromaClient = new chromadb_1.ChromaClient();
+        collection = yield chromaClient.getOrCreateCollection({
+            name: 'fire_recovery_chunks',
+            metadata: { description: 'Paragraph chunks from LA/Pasadena County fire recovery PDFs' },
+            embeddingFunction: {
+                generate: (_docs) => __awaiter(void 0, void 0, void 0, function* () { throw new Error('embeddingFunction should not be called'); })
+            }
+        });
+        console.log('ChromaDB initialized successfully');
+    }
+    catch (error) {
+        console.warn('ChromaDB initialization failed, continuing without vector search:', error instanceof Error ? error.message : String(error));
+        // Set embedder without ChromaDB for basic functionality
+        embedder = yield (0, transformers_1.pipeline)('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    }
 }))();
-// Ensure embedder and collection are initialized before handling requests
+// Ensure embedder is initialized before handling requests
 function ensureInitialized() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!embedder || !collection) {
+        if (!embedder) {
             // Wait for initialization (max 5 seconds)
             for (let i = 0; i < 10; i++) {
-                if (embedder && collection)
+                if (embedder)
                     return;
                 yield new Promise(r => setTimeout(r, 500));
             }
@@ -288,25 +296,31 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const embeddingTensor = yield embedder(contextText, { pooling: 'mean', normalize: true });
         const embedding = Array.from(embeddingTensor.data);
-        // Query ChromaDB for top 3 most similar chunks
-        const results = yield collection.query({
-            queryEmbeddings: [embedding],
-            nResults: 3
-        });
-        // Log top 3 matches for debugging
-        for (let i = 0; i < Math.min(3, results.documents[0].length); i++) {
-            const m = results.documents[0][i];
-            console.log(`Match ${i + 1}:`, m.slice(0, 100), '| Source:', (_a = results.metadatas[0][i]) === null || _a === void 0 ? void 0 : _a.source, '| Distance:', results.distances[0][i]);
-        }
-        const matches = (results.documents[0] || []).map((text, i) => {
-            var _a, _b;
-            return ({
-                text,
-                source: (_a = results.metadatas[0][i]) === null || _a === void 0 ? void 0 : _a.source,
-                chunk_index: (_b = results.metadatas[0][i]) === null || _b === void 0 ? void 0 : _b.chunk_index,
-                distance: results.distances[0][i]
+        let matches = [];
+        if (collection) {
+            // Query ChromaDB for top 3 most similar chunks
+            const results = yield collection.query({
+                queryEmbeddings: [embedding],
+                nResults: 3
             });
-        });
+            // Log top 3 matches for debugging
+            for (let i = 0; i < Math.min(3, results.documents[0].length); i++) {
+                const m = results.documents[0][i];
+                console.log(`Match ${i + 1}:`, m.slice(0, 100), '| Source:', (_a = results.metadatas[0][i]) === null || _a === void 0 ? void 0 : _a.source, '| Distance:', results.distances[0][i]);
+            }
+            matches = (results.documents[0] || []).map((text, i) => {
+                var _a, _b;
+                return ({
+                    text,
+                    source: (_a = results.metadatas[0][i]) === null || _a === void 0 ? void 0 : _a.source,
+                    chunk_index: (_b = results.metadatas[0][i]) === null || _b === void 0 ? void 0 : _b.chunk_index,
+                    distance: results.distances[0][i]
+                });
+            });
+        }
+        else {
+            console.log('ChromaDB not available, providing general response');
+        }
         // Check if the top match is good enough
         if (!matches.length || matches[0].distance === undefined || matches[0].distance > 2.0) {
             return res.json({
@@ -428,8 +442,11 @@ router.post('/search', (req, res) => __awaiter(void 0, void 0, void 0, function*
         return res.status(400).json({ error: 'Missing query' });
     }
     try {
-        if (!embedder || !collection) {
-            return res.status(503).json({ error: 'Embedding model or ChromaDB not ready' });
+        if (!embedder) {
+            return res.status(503).json({ error: 'Embedding model not ready' });
+        }
+        if (!collection) {
+            return res.status(503).json({ error: 'ChromaDB not available - vector search disabled' });
         }
         // Generate embedding for the query
         const embeddingTensor = yield embedder(query, { pooling: 'mean', normalize: true });
