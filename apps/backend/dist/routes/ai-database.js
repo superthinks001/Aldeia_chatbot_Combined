@@ -417,7 +417,7 @@ router.post('/batch', (req, res) => __awaiter(void 0, void 0, void 0, function* 
                     operation: op.type,
                     table: op.table,
                     success: false,
-                    error: error.message
+                    error: error instanceof Error ? error.message : String(error)
                 });
             }
         }
@@ -465,7 +465,7 @@ router.get('/health', (req, res) => __awaiter(void 0, void 0, void 0, function* 
             success: false,
             status: 'unhealthy',
             database: 'disconnected',
-            error: error.message
+            error: error instanceof Error ? error.message : String(error)
         });
     }
 }));

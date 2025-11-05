@@ -24,7 +24,7 @@ const router = express_1.default.Router();
 // Apply input sanitization middleware
 router.use(sanitizeInput_1.sanitizeInput);
 const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-change-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '24h');
 // ====================================================================
 // AUTH MIDDLEWARE - Used by protected routes
 // ====================================================================
@@ -196,6 +196,12 @@ router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* 
 // ====================================================================
 router.get('/profile', exports.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const userId = req.user.userId;
         const user = yield getUserById(userId);
         if (!user) {
@@ -225,6 +231,12 @@ router.get('/profile', exports.authenticateToken, (req, res) => __awaiter(void 0
 }));
 router.put('/profile', exports.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const userId = req.user.userId;
         const { name, email, currentPassword, newPassword } = req.body;
         const user = yield getUserById(userId);
@@ -309,7 +321,9 @@ router.put('/profile', exports.authenticateToken, (req, res) => __awaiter(void 0
 router.post('/logout', exports.authenticateToken, (req, res) => {
     // In a stateless JWT system, logout is handled client-side by removing the token
     // For more security, you could implement a token blacklist
-    logger_1.logger.info(`User logged out: ${req.user.email}`);
+    if (req.user) {
+        logger_1.logger.info(`User logged out: ${req.user.email}`);
+    }
     res.json({
         success: true,
         message: 'Logged out successfully'
