@@ -119,6 +119,13 @@ router.post('/', authenticateToken, upload.single('document'), async (req: Reque
       } as ApiResponse);
     }
 
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const { title, description } = req.body;
     const userId = req.user.userId;
 
@@ -162,6 +169,13 @@ router.post('/', authenticateToken, upload.single('document'), async (req: Reque
 
 router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      } as ApiResponse);
+    }
+
     const { id } = req.params;
     const userRole = req.user.role;
 

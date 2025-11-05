@@ -115,6 +115,12 @@ router.post('/', auth_1.authenticateToken, upload.single('document'), (req, res)
                 error: 'No file uploaded'
             });
         }
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const { title, description } = req.body;
         const userId = req.user.userId;
         // For now, we'll store basic file info
@@ -152,6 +158,12 @@ router.post('/', auth_1.authenticateToken, upload.single('document'), (req, res)
 // ====================================================================
 router.delete('/:id', auth_1.authenticateToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
         const { id } = req.params;
         const userRole = req.user.role;
         // Only admins can delete documents

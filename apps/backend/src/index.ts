@@ -1,69 +1,123 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import fs from 'fs';
-import https from 'https';
-import chatRouter from './routes/chat';
-import type { Request, Response, NextFunction } from 'express';
-import { initDb } from './db';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+import path from 'path';
+import { testConnection } from './config/database';
+
+// Import routes
+import authRoutes from './routes/auth.routes';
+import chatRoutes from './routes/chat';
+
+// Import middleware
+import { authenticate } from './middleware/auth/authenticate.middleware';
+
+// Load environment
+dotenv.config({ path: path.join(__dirname, '../../.env.merge') });
 
 const app = express();
-const PORT = process.env.PORT || 4000;
-const ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+const PORT = process.env.BACKEND_PORT || 3001;
+
+// ============================================
+// MIDDLEWARE
+// ============================================
 
 // Security headers
 app.use(helmet());
 
-// CORS with env-based origin
+// CORS
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3002',
+  process.env.FRONTEND_CHAT_URL,
+  process.env.FRONTEND_REBUILD_URL
+].filter((origin): origin is string => Boolean(origin));
+
 app.use(cors({
-  origin: ORIGIN,
+  origin: allowedOrigins,
   credentials: true
 }));
 
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later'
+});
+app.use('/api/', limiter);
+
+// Body parsing
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Enforce HTTPS in production
-if (process.env.NODE_ENV === 'production') {
-  app.use((req, res, next) => {
-    if (req.headers['x-forwarded-proto'] !== 'https') {
-      return res.redirect('https://' + req.headers.host + req.url);
-    }
-    next();
+// ============================================
+// PUBLIC ROUTES (No authentication required)
+// ============================================
+
+app.get('/api/health', async (req, res) => {
+  const dbConnected = await testConnection();
+
+  res.json({
+    status: dbConnected ? 'healthy' : 'degraded',
+    timestamp: new Date().toISOString(),
+    database: dbConnected ? 'connected' : 'disconnected',
+    version: '2.0.0-auth'
   });
-}
-
-// Error logging middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  fs.appendFileSync('error.log', `${new Date().toISOString()} - ${err.stack}\n`);
-  res.status(500).json({ error: 'Internal server error' });
 });
 
-app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
+// Authentication routes (public)
+app.use('/api/auth', authRoutes);
+
+// ============================================
+// PROTECTED ROUTES (Authentication required)
+// ============================================
+
+// Apply authentication middleware to all routes below
+app.use('/api/chat', authenticate, chatRoutes);
+
+// ============================================
+// ERROR HANDLING
+// ============================================
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    message: `Route ${req.method} ${req.path} not found`
+  });
 });
 
-app.use('/api/chat', chatRouter);
-
-// HTTPS server for local development (optional)
-if (process.env.LOCAL_HTTPS === 'true') {
-  const options = {
-    key: fs.readFileSync('server.key'),
-    cert: fs.readFileSync('server.cert')
-  };
-  https.createServer(options, app).listen(PORT, () => {
-    console.log('HTTPS server running on port ' + PORT);
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
-} else {
-  app.listen(PORT, () => {
-    console.log(`Backend server running on port ${PORT}`);
-  });
-}
-// In your app.ts or index.ts
-import aiDatabaseRoutes from './routes/ai-database';
+});
 
-app.use('/api/ai-db', aiDatabaseRoutes);
+// ============================================
+// START SERVER
+// ============================================
 
-initDb();
+app.listen(PORT, async () => {
+  console.log(`\n🚀 Aldeia Chatbot Backend v2.0.0-auth`);
+  console.log(`📡 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  // Test database connection
+  const dbConnected = await testConnection();
+  if (!dbConnected) {
+    console.error('⚠️  WARNING: Database connection failed!');
+  }
+
+  console.log(`\n🔐 Authentication enabled`);
+  console.log(`   Public routes: /api/health, /api/auth/*`);
+  console.log(`   Protected routes: /api/chat/* (requires Bearer token)`);
+  console.log(`\n✅ Ready to accept requests`);
+  console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
+});
+
+export default app;
