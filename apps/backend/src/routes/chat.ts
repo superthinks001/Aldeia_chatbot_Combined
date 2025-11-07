@@ -268,9 +268,10 @@ router.post('/', async (req: Request, res: Response) => {
 
   try {
     await ensureInitialized();
-    if (!embedder || !collection) {
+    if (!embedder) {
       return res.status(503).json({ response: 'I apologize, but my knowledge base is still loading. Please try again in a moment.', confidence: 0, bias, uncertainty: true, context: context || null });
     }
+    // Note: collection (ChromaDB) is optional - fallback logic exists below
     
     // If ambiguous, return a clarifying prompt with friendly tone
     if (ambiguous) {
