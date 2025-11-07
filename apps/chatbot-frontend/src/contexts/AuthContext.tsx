@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Verify token is still valid
           try {
-            const response = await fetch(`${API_URL}/auth/me`, {
+            const response = await fetch(`${API_URL}/auth/verify`, {
               headers: {
                 'Authorization': `Bearer ${accessToken}`
               }
@@ -133,16 +133,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || data.error || 'Login failed');
       }
 
       // Store tokens and user
-      storage.setTokens(data.tokens);
-      storage.setUser(data.user);
+      storage.setTokens(data.data.tokens);
+      storage.setUser(data.data.user);
 
       setState({
-        user: data.user,
-        tokens: data.tokens,
+        user: data.data.user,
+        tokens: data.data.tokens,
         isAuthenticated: true,
         isLoading: false,
         error: null
@@ -176,13 +176,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Registration failed');
+        throw new Error(result.message || result.error || 'Registration failed');
       }
 
-      // After registration, automatically log in
-      await login({
-        email: data.email,
-        password: data.password
+      // Store tokens and user from registration response
+      storage.setTokens(result.data.tokens);
+      storage.setUser(result.data.user);
+
+      setState({
+        user: result.data.user,
+        tokens: result.data.tokens,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null
       });
     } catch (error: any) {
       setState(prev => ({
@@ -269,13 +275,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Store new tokens and user
-      storage.setTokens(data.tokens);
-      storage.setUser(data.user);
+      storage.setTokens(data.data.tokens);
+      storage.setUser(data.data.user);
 
       setState(prev => ({
         ...prev,
-        user: data.user,
-        tokens: data.tokens,
+        user: data.data.user,
+        tokens: data.data.tokens,
         isAuthenticated: true
       }));
 
