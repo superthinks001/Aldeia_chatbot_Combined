@@ -105,8 +105,8 @@ const ChatWidget: React.FC = () => {
 
       {!isMinimized && (
         <>
-          <MessageList messages={messages} loading={loading} />
-          <InputBox onSendMessage={handleSendMessage} disabled={loading} />
+          <MessageList messages={messages} />
+          <InputBox onSend={handleSendMessage} disabled={loading} />
         </>
       )}
     </div>

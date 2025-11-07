@@ -17,8 +17,12 @@ const transformers_1 = require("@xenova/transformers");
 const chromadb_1 = require("chromadb");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const db_1 = require("../db");
+const conversations_service_1 = require("../services/conversations.service");
+const analytics_service_1 = require("../services/analytics.service");
 const document_ingest_1 = require("../document_ingest");
+const authorize_middleware_1 = require("../middleware/auth/authorize.middleware");
+const auth_types_1 = require("../types/auth.types");
+const database_1 = require("../config/database");
 const router = (0, express_1.Router)();
 let embedder = null;
 let collection = null;
@@ -58,8 +62,10 @@ function ensureInitialized() {
     });
 }
 function logErrorToFile(error, req) {
+    var _a;
     const logPath = path_1.default.join(__dirname, '../../error.log');
-    const logEntry = `\n[${new Date().toISOString()}]\nRequest: ${JSON.stringify({ url: req.url, body: req.body })}\nError: ${error instanceof Error ? error.stack : JSON.stringify(error)}\n`;
+    const userId = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.userId) || 'anonymous';
+    const logEntry = `\n[${new Date().toISOString()}]\nUser: ${userId}\nRequest: ${JSON.stringify({ url: req.url, body: req.body })}\nError: ${error instanceof Error ? error.stack : JSON.stringify(error)}\n`;
     fs_1.default.appendFileSync(logPath, logEntry);
 }
 function logBiasToFile(entry) {
@@ -194,6 +200,9 @@ function getProactiveNotification(message, context) {
 }
 router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
+    // Get authenticated user info
+    const userId = parseInt(req.user.userId); // Convert string to number
+    const userEmail = req.user.email;
     let { message, context, pageUrl, isFirstMessage, conversationId, userProfile } = req.body;
     // Sanitize all user input
     message = typeof message === 'string' ? sanitizeInput(message) : '';
@@ -201,6 +210,16 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     pageUrl = typeof pageUrl === 'string' ? sanitizeInput(pageUrl) : '';
     isFirstMessage = Boolean(isFirstMessage);
     conversationId = typeof conversationId === 'string' ? conversationId : null;
+    // Create or get conversation from database
+    let conversation = null;
+    if (!isFirstMessage) {
+        conversation = yield conversations_service_1.ConversationsService.createOrGetConversation(userId, conversationId || undefined, undefined, // title - auto-generated later
+        (userProfile === null || userProfile === void 0 ? void 0 : userProfile.language) || 'en');
+        // Update conversationId if new conversation was created
+        if (conversation && !conversationId) {
+            conversationId = conversation.id;
+        }
+    }
     // Track context for conversation
     let convContext = conversationId ? (conversationContexts[conversationId] || { history: [] }) : { history: [] };
     if (context)
@@ -264,14 +283,20 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         // If ambiguous, return a clarifying prompt with friendly tone
         if (ambiguous) {
+            const clarificationText = "I'd love to help you, but I'm not quite sure what you're asking. Could you please provide more details or rephrase your question? I'm here to assist with fire recovery information, permits, debris removal, rebuilding processes, and more.";
             // Add bot clarification to history
-            convContext.history.push({ sender: 'bot', text: "I'd love to help you, but I'm not quite sure what you're asking. Could you please provide more details or rephrase your question? I'm here to assist with fire recovery information, permits, debris removal, rebuilding processes, and more." });
+            convContext.history.push({ sender: 'bot', text: clarificationText });
             if (conversationId)
                 conversationContexts[conversationId] = convContext;
+            // Store user message and bot clarification in database
+            if (conversation && conversationId) {
+                yield conversations_service_1.ConversationsService.addMessage(conversationId, 'user', message, { intent, ambiguous: true });
+                yield conversations_service_1.ConversationsService.addMessage(conversationId, 'bot', clarificationText, { intent, ambiguous: true, confidence: 0.3 });
+            }
             // Generate clarification options
             const clarificationOptions = generateClarificationOptions(message, convContext);
             return res.json({
-                response: "I'd love to help you, but I'm not quite sure what you're asking. Could you please provide more details or rephrase your question? I'm here to assist with fire recovery information, permits, debris removal, rebuilding processes, and more.",
+                response: clarificationText,
                 confidence: 0.3,
                 bias,
                 uncertainty: true,
@@ -399,25 +424,51 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             handoffRequired = true;
             handoffMethod = 'email';
         }
-        // Log user message event
-        let userId = undefined;
-        if (userProfile && userProfile.email) {
-            yield new Promise((resolve) => {
-                (0, db_1.addOrUpdateUser)(userProfile, (err, id) => {
-                    if (!err && id)
-                        userId = id;
-                    resolve();
-                });
+        // Log user message event with new analytics service
+        yield analytics_service_1.AnalyticsService.logEvent({
+            user_id: userId,
+            conversation_id: conversationId || undefined,
+            event_type: 'user_message',
+            message,
+            metadata: { userProfile, userEmail, intent }
+        });
+        // Store user message in conversation history
+        if (conversation && conversationId) {
+            yield conversations_service_1.ConversationsService.addMessage(conversationId, 'user', message, {
+                intent,
+                confidence,
+                bias,
+                ambiguous
             });
         }
-        (0, db_1.logAnalytics)({ user_id: userId, conversation_id: conversationId, event_type: 'user_message', message, meta: { userProfile } });
         // Use enhanced response formatting
         const replyFormatted = formatResponse(reply, selected.source, bias);
         // Log bot response event
-        (0, db_1.logAnalytics)({ user_id: userId, conversation_id: conversationId, event_type: 'bot_response', message: replyFormatted, meta: { intent, bias, ambiguous, alternatives, notification } });
+        yield analytics_service_1.AnalyticsService.logEvent({
+            user_id: userId,
+            conversation_id: conversationId || undefined,
+            event_type: 'bot_response',
+            message: replyFormatted,
+            metadata: { intent, bias, ambiguous, alternatives, notification, confidence }
+        });
+        // Store bot response in conversation history
+        if (conversation && conversationId) {
+            yield conversations_service_1.ConversationsService.addMessage(conversationId, 'bot', replyFormatted, {
+                intent,
+                confidence,
+                bias,
+                ambiguous
+            });
+        }
         // Log handoff event if needed
         if (handoffRequired) {
-            (0, db_1.logAnalytics)({ user_id: userId, conversation_id: conversationId, event_type: 'handoff', message, meta: { handoffMethod } });
+            yield analytics_service_1.AnalyticsService.logEvent({
+                user_id: userId,
+                conversation_id: conversationId || undefined,
+                event_type: 'handoff',
+                message,
+                metadata: { handoffMethod }
+            });
         }
         res.json(Object.assign(Object.assign(Object.assign({ response: replyFormatted, confidence,
             bias, uncertainty: confidence < 0.4, context: convContext, grounded: true, hallucination: false, source: selected.source, chunk_index: selected.chunk_index, distance: selected.distance, matches: matches.map((m) => ({
@@ -482,7 +533,7 @@ router.post('/search', (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 }));
 // Admin endpoint to fetch last 100 bias/fairness log entries
-router.get('/bias-logs', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/bias-logs', (0, authorize_middleware_1.requirePermission)(auth_types_1.Permission.VIEW_SYSTEM_LOGS), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!fs_1.default.existsSync(biasLogPath)) {
             return res.json({ logs: [] });
@@ -496,23 +547,33 @@ router.get('/bias-logs', (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 }));
 // Admin endpoint: analytics summary
-router.get('/admin/analytics', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    (0, db_1.getAnalyticsSummary)((err, summary) => {
-        if (err)
-            return res.status(500).json({ error: 'Failed to fetch analytics' });
+router.get('/admin/analytics', (0, authorize_middleware_1.requirePermission)(auth_types_1.Permission.READ_ADVANCED_ANALYTICS), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const summary = yield analytics_service_1.AnalyticsService.getOverallSummary();
         res.json({ summary });
-    });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
 }));
 // Admin endpoint: user list
-router.get('/admin/users', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    (0, db_1.getUsers)((err, users) => {
-        if (err)
+router.get('/admin/users', (0, authorize_middleware_1.requirePermission)(auth_types_1.Permission.ADMIN_API_ACCESS), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { data: users, error } = yield database_1.supabase
+            .from('users')
+            .select('id, name, email, county, language, role, is_active, created_at')
+            .order('created_at', { ascending: false });
+        if (error) {
             return res.status(500).json({ error: 'Failed to fetch users' });
-        res.json({ users });
-    });
+        }
+        res.json({ users: users || [] });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
 }));
 // Document management endpoints
-router.get('/admin/documents', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/admin/documents', (0, authorize_middleware_1.requirePermission)(auth_types_1.Permission.MANAGE_CONTENT), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const workspaceRoot = path_1.default.resolve(__dirname, '../../../');
         const laCountyDir = path_1.default.join(workspaceRoot, "chatbot/frontend/public/LA County");
@@ -535,7 +596,7 @@ router.get('/admin/documents', (_req, res) => __awaiter(void 0, void 0, void 0, 
         res.status(500).json({ error: 'Failed to fetch documents' });
     }
 }));
-router.post('/admin/documents/reindex', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/admin/documents/reindex', (0, authorize_middleware_1.requirePermission)(auth_types_1.Permission.MANAGE_CONTENT), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, document_ingest_1.reindexAllDocuments)();
         res.json({ message: 'Document reindexing completed', result });
@@ -544,7 +605,7 @@ router.post('/admin/documents/reindex', (_req, res) => __awaiter(void 0, void 0,
         res.status(500).json({ error: 'Failed to trigger reindexing', details: err instanceof Error ? err.message : String(err) });
     }
 }));
-router.post('/admin/documents/upload', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/admin/documents/upload', (0, authorize_middleware_1.requirePermission)(auth_types_1.Permission.MANAGE_CONTENT), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Handle file upload (placeholder for now)
         res.json({ message: 'File upload endpoint - implementation pending' });

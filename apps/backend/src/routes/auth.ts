@@ -15,19 +15,6 @@ router.use(sanitizeInput);
 const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-change-in-production';
 const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '24h') as string | number;
 
-// Extend Express Request type to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        userId: string;
-        email: string;
-        role: string;
-      };
-    }
-  }
-}
-
 // ====================================================================
 // AUTH MIDDLEWARE - Used by protected routes
 // ====================================================================

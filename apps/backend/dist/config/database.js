@@ -52,7 +52,7 @@ const sqlite3_1 = __importDefault(require("sqlite3"));
 const dotenv = __importStar(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 // Load environment variables
-dotenv.config({ path: path_1.default.join(__dirname, '../../../.env.merge') });
+dotenv.config({ path: path_1.default.join(__dirname, '../../../../.env.merge') });
 // ============================================
 // PostgreSQL/Supabase Connection (Primary)
 // ============================================
