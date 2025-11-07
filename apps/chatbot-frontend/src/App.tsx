@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from './contexts/AuthContext';
+import LandingPage from './components/LandingPage';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 import ChatWidget from './components/ChatWidget';
@@ -10,6 +11,7 @@ import './App.css';
 const App: React.FC = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [showRegister, setShowRegister] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const path = window.location.pathname;
 
   // Show loading while checking auth
@@ -22,8 +24,13 @@ const App: React.FC = () => {
     );
   }
 
-  // Show auth forms if not authenticated
-  if (!isAuthenticated) {
+  // Show landing page if not authenticated and auth not requested
+  if (!isAuthenticated && !showAuth) {
+    return <LandingPage onLoginClick={() => setShowAuth(true)} />;
+  }
+
+  // Show auth forms if not authenticated but auth requested
+  if (!isAuthenticated && showAuth) {
     return (
       <div className="app">
         {showRegister ? (
