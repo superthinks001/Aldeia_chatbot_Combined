@@ -4,14 +4,20 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
+import { createServer } from 'http';
 import { testConnection } from './config/database';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
 import chatRoutes from './routes/chat';
+import billingRoutes from './routes/billing';
 
 // Import middleware
 import { authenticate } from './middleware/auth/authenticate.middleware';
+import { tenantMiddleware } from './middleware/tenant.middleware';
+
+// Import WebSocket
+import { initializeWebSocket } from './websocket/socket.server';
 
 // Load environment
 dotenv.config({ path: path.join(__dirname, '../../.env.merge') });
@@ -51,6 +57,9 @@ app.use('/api/', limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Tenant middleware (optional multi-tenancy support)
+app.use(tenantMiddleware);
+
 // ============================================
 // PUBLIC ROUTES (No authentication required)
 // ============================================
@@ -75,6 +84,7 @@ app.use('/api/auth', authRoutes);
 
 // Apply authentication middleware to all routes below
 app.use('/api/chat', authenticate, chatRoutes);
+app.use('/api/billing', authenticate, billingRoutes);
 
 // ============================================
 // ERROR HANDLING
@@ -102,8 +112,14 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // START SERVER
 // ============================================
 
-app.listen(PORT, async () => {
-  console.log(`\n🚀 Aldeia Chatbot Backend v2.0.0-auth`);
+// Create HTTP server (required for Socket.IO)
+const httpServer = createServer(app);
+
+// Initialize WebSocket server
+const websocketServer = initializeWebSocket(httpServer);
+
+httpServer.listen(PORT, async () => {
+  console.log(`\n🚀 Aldeia Chatbot Backend v2.0.0-phase5`);
   console.log(`📡 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 
@@ -115,7 +131,15 @@ app.listen(PORT, async () => {
 
   console.log(`\n🔐 Authentication enabled`);
   console.log(`   Public routes: /api/health, /api/auth/*`);
-  console.log(`   Protected routes: /api/chat/* (requires Bearer token)`);
+  console.log(`   Protected routes: /api/chat/*, /api/billing/* (requires Bearer token)`);
+
+  console.log(`\n🌐 Phase 5 Features Enabled:`);
+  console.log(`   ✅ WebSocket Real-time (Socket.IO)`);
+  console.log(`   ✅ Stripe Billing Integration`);
+  console.log(`   ✅ Multi-tenant Architecture`);
+  console.log(`   ✅ Translation Service`);
+  console.log(`   ✅ Voice Input/Output (Frontend)`);
+
   console.log(`\n✅ Ready to accept requests`);
   console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
 });
