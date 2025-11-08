@@ -1,0 +1,276 @@
+.design-matches {
+  min-height: 100vh;
+  background: #fff;
+  position: relative;
+}
+
+.matches-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 60px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 40px;
+}
+
+.matches-left {
+  padding-top: 40px;
+}
+
+.matches-title {
+  font-size: 42px;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.2;
+  margin-bottom: 40px;
+}
+
+.matches-title sup {
+  font-size: 16px;
+  vertical-align: super;
+}
+
+.style-description {
+  margin-bottom: 30px;
+}
+
+.style-description h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.style-highlight {
+  color: #FF6B4A;
+}
+
+.style-description p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.7;
+}
+
+.sub-style {
+  margin-bottom: 24px;
+}
+
+.sub-style h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.sub-style p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.7;
+}
+
+/* Right Section */
+.matches-right {
+  padding-top: 20px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.design-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.design-match-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  transition: all 0.3s;
+}
+
+.design-match-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.design-image-section {
+  position: relative;
+  background: #f0f0f0;
+}
+
+.design-image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.match-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: #4CAF50;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.design-info-section {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.design-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.architect-name {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+}
+
+.design-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.design-specs {
+  font-size: 13px;
+  color: #999;
+}
+
+.design-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: auto;
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.action-btn svg {
+  width: 18px;
+  height: 18px;
+  color: #666;
+}
+
+.action-btn:hover {
+  border-color: #FF6B4A;
+}
+
+.action-btn.active {
+  background: #FF6B4A;
+  border-color: #FF6B4A;
+}
+
+.action-btn.active svg {
+  color: white;
+}
+
+.like-btn.active {
+  background: #4CAF50;
+  border-color: #4CAF50;
+}
+
+.dislike-btn.active {
+  background: #f44336;
+  border-color: #f44336;
+}
+
+.view-details-btn {
+  background: #FF6B4A;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-left: auto;
+}
+
+.view-details-btn:hover {
+  background: #FF5232;
+}
+
+/* Navigation */
+.matches-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 60px;
+}
+
+.nav-btn-secondary {
+  background: white;
+  color: #333;
+  border: 2px solid #333;
+  padding: 14px 32px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-btn-secondary:hover {
+  background: #333;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .matches-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 40px 20px;
+  }
+
+  .matches-title {
+    font-size: 32px;
+  }
+
+  .design-match-card {
+    grid-template-columns: 1fr;
+  }
+
+  .design-image-section {
+    aspect-ratio: 16/9;
+  }
+
+  .matches-nav {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+}
