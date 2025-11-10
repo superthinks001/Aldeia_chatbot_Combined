@@ -1,0 +1,62 @@
+.notification-banner-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.notification-banner {
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.notification-banner:hover {
+  transform: translateX(2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+/* Priority-specific styles */
+.notification-banner.priority-urgent {
+  border-left-width: 6px;
+}
+
+.notification-banner.priority-high {
+  border-left-width: 5px;
+}
+
+/* Slide-in animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .notification-banner-container {
+    max-height: 150px;
+  }
+
+  .notification-banner {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+}
+
+/* Accessibility */
+.notification-banner:focus-within {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  .notification-banner {
+    color: #f5f5f5;
+  }
+}

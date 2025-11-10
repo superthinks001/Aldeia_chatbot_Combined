@@ -1,0 +1,83 @@
+/* Handoff Dialog Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Overlay styles */
+.handoff-overlay {
+  backdrop-filter: blur(2px);
+}
+
+/* Dialog styles */
+.handoff-dialog {
+  box-sizing: border-box;
+}
+
+/* Scrollbar styling for dialog content */
+.handoff-dialog::-webkit-scrollbar {
+  width: 8px;
+}
+
+.handoff-dialog::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.handoff-dialog::-webkit-scrollbar-thumb {
+  background: #bdbdbd;
+  border-radius: 4px;
+}
+
+.handoff-dialog::-webkit-scrollbar-thumb:hover {
+  background: #9e9e9e;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .handoff-dialog {
+    width: 95% !important;
+    padding: 20px !important;
+    max-height: 90vh !important;
+  }
+
+  .handoff-dialog h2 {
+    font-size: 18px !important;
+  }
+}
+
+/* Accessibility */
+.handoff-dialog:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 4px;
+}
+
+/* Print styles */
+@media print {
+  .handoff-overlay,
+  .handoff-dialog button {
+    display: none;
+  }
+
+  .handoff-dialog {
+    position: static;
+    transform: none;
+    box-shadow: none;
+    border: 1px solid #e0e0e0;
+  }
+}

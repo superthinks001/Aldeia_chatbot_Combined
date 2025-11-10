@@ -15,6 +15,8 @@ import { analyzeBias, correctBias } from '../services/bias-detection.service';
 import { factCheck } from '../services/fact-checking.service';
 import { getProactiveNotifications } from '../services/proactive-notifications.service';
 import { checkHandoffTriggers, prepareHandoffContext, getHandoffMessage, getHandoffContact } from '../services/human-handoff.service';
+// Sprint 3 Services - Interest-based suggestions
+import { getUserSuggestions } from '../services/interest-suggestions.service';
 
 const router = Router();
 
@@ -443,6 +445,14 @@ router.post('/', async (req: Request, res: Response) => {
     });
     const notification = notifications.length > 0 ? notifications[0] : null;
 
+    // Sprint 3: Interest-based suggestions
+    const suggestions = getUserSuggestions({
+      conversationHistory: convContext.history,
+      pageContext: convContext.pageContext,
+      userProfile: convContext.userProfile,
+      viewedSuggestions: convContext.viewedSuggestions || []
+    });
+
     // Sprint 2: Enhanced human handoff detection
     const handoffTrigger = checkHandoffTriggers({
       confidence: intentResult.confidence,
@@ -609,6 +619,8 @@ router.post('/', async (req: Request, res: Response) => {
       // Sprint 2: Enhanced proactive notifications
       ...(notification ? { notification } : {}),
       ...(notifications.length > 1 ? { notifications } : {}),
+      // Sprint 3: Interest-based suggestions
+      ...(suggestions.length > 0 ? { suggestions } : {}),
       // Sprint 2: Enhanced human handoff
       ...(handoffRequired ? {
         handoffRequired,
