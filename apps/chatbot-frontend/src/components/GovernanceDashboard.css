@@ -1,0 +1,293 @@
+.governance-dashboard {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.date-range-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.date-range-selector button {
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.date-range-selector button:hover {
+  background-color: #f5f5f5;
+}
+
+.date-range-selector button.active {
+  background-color: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
+
+.dashboard-loading {
+  text-align: center;
+  padding: 60px;
+  font-size: 18px;
+  color: #757575;
+}
+
+.dashboard-section {
+  margin-bottom: 32px;
+}
+
+.dashboard-section h2 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Health Card */
+.health-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-left: 6px solid;
+}
+
+.health-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.health-icon {
+  font-size: 32px;
+}
+
+.health-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 24px;
+}
+
+.metric {
+  text-align: center;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.metric-card h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1976d2;
+}
+
+.card-detail {
+  font-size: 14px;
+  color: #757575;
+  margin-top: 8px;
+}
+
+.type-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.type-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.type-name {
+  color: #2c3e50;
+  text-transform: capitalize;
+}
+
+.type-count {
+  font-weight: 600;
+  color: #1976d2;
+}
+
+/* Compliance Grid */
+.compliance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.compliance-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-top: 4px solid #1976d2;
+}
+
+.compliance-card.warning {
+  border-top-color: #f57c00;
+}
+
+.compliance-card.critical {
+  border-top-color: #c62828;
+}
+
+.compliance-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.compliance-label {
+  font-size: 13px;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .governance-dashboard {
+    padding: 16px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
+  .date-range-selector {
+    width: 100%;
+  }
+
+  .date-range-selector button {
+    flex: 1;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .health-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .metric-value {
+    font-size: 24px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compliance-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .compliance-value {
+    font-size: 28px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .governance-dashboard {
+    background-color: white;
+  }
+
+  .date-range-selector {
+    display: none;
+  }
+
+  .metric-card,
+  .health-card,
+  .compliance-card {
+    box-shadow: none;
+    border: 1px solid #e0e0e0;
+  }
+
+  .metric-card:hover {
+    transform: none;
+  }
+}
