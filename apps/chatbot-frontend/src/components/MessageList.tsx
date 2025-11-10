@@ -1,5 +1,6 @@
 import React from 'react';
 import BiasWarning from './BiasWarning';
+import EthicalAIIndicators from './EthicalAIIndicators';
 
 export interface Message {
   sender: 'user' | 'bot' | 'docs';
@@ -7,6 +8,9 @@ export interface Message {
   confidence?: number;
   bias?: boolean;
   uncertainty?: boolean;
+  hallucination?: boolean;
+  grounded?: boolean;
+  sources?: string[];
   matches?: { text: string; source: string; score: number; chunk_index: number }[];
   isGreeting?: boolean;
   intent?: string;
@@ -114,10 +118,18 @@ const MessageList: React.FC<MessageListProps> = ({ messages, history, isFullScre
                 </ul>
               </details>
             )}
+            {/* Ethical AI Indicators for bot messages */}
             {msg.sender === 'bot' && !msg.isGreeting && (
-              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <BiasWarning bias={msg.bias} uncertainty={msg.uncertainty} size="small" />
-              </div>
+              <EthicalAIIndicators
+                confidence={msg.confidence}
+                bias={msg.bias}
+                uncertainty={msg.uncertainty}
+                hallucination={msg.hallucination}
+                grounded={msg.grounded}
+                sources={msg.sources}
+                size="small"
+                showDetails={false}
+              />
             )}
           </div>
         )}
