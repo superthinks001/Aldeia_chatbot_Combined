@@ -16,6 +16,61 @@ export interface Message {
   intent?: string;
   context?: any;
   isClarification?: boolean;
+
+  // Sprint 2: Enhanced bias analysis
+  biasAnalysis?: {
+    detected: boolean;
+    score: number;
+    types: string[];
+    severity: 'low' | 'medium' | 'high';
+    corrected: boolean;
+  };
+
+  // Sprint 2: Fact-checking results
+  hallucinationRisk?: number;
+  factCheck?: {
+    verified: boolean;
+    reliability: 'high' | 'medium' | 'low' | 'unverified';
+    sources: string[];
+    conflicts?: any[];
+    recommendations: string[];
+  };
+
+  // Sprint 2: Enhanced intent classification
+  intentConfidence?: number;
+  secondaryIntents?: string[];
+  entities?: {
+    location?: string;
+    dateTime?: string;
+    documentType?: string;
+    topic?: string;
+  };
+
+  // Sprint 2/3: Human handoff
+  handoffRequired?: boolean;
+  handoffReason?: string;
+  handoffPriority?: 'low' | 'medium' | 'high' | 'urgent';
+  handoffMessage?: string;
+  handoffContact?: {
+    name: string;
+    phone?: string;
+    email?: string;
+    hours?: string;
+  };
+  handoffExpert?: string;
+
+  // Sprint 2/3: Proactive notifications
+  notification?: {
+    id: string;
+    type: 'deadline' | 'update' | 'resource' | 'weather' | 'safety';
+    title: string;
+    message: string;
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    location?: string;
+    actionUrl?: string;
+    actionText?: string;
+  };
+  notifications?: any[];
 }
 
 interface MessageListProps {
