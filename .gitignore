@@ -33,6 +33,7 @@ yarn-error.log*
 .claude/
 
 # OS
+**/.DS_Store
 .DS_Store
 Thumbs.db
 
