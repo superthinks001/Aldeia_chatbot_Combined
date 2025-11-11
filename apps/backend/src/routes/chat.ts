@@ -9,6 +9,14 @@ import { findAllPDFs, extractTextFromPDF, reindexAllDocuments } from '../documen
 import { requireRole, requirePermission } from '../middleware/auth/authorize.middleware';
 import { UserRole, Permission } from '../types/auth.types';
 import { supabase } from '../config/database';
+// Sprint 2 Services - Enhanced AI capabilities
+import { classifyIntent as enhancedClassifyIntent, extractEntities } from '../services/nlp.service';
+import { analyzeBias, correctBias } from '../services/bias-detection.service';
+import { factCheck } from '../services/fact-checking.service';
+import { getProactiveNotifications } from '../services/proactive-notifications.service';
+import { checkHandoffTriggers, prepareHandoffContext, getHandoffMessage, getHandoffContact } from '../services/human-handoff.service';
+// Sprint 3 Services - Interest-based suggestions
+import { getUserSuggestions } from '../services/interest-suggestions.service';
 
 const router = Router();
 
@@ -84,32 +92,18 @@ function generateGreeting(context?: string): string {
   return randomGreeting;
 }
 
-// Expanded intent classification
-function classifyIntent(message: string): string {
-  const msg = message.toLowerCase();
-  if (/emergency|urgent|help|fire|evacuate|danger|911|immediate/.test(msg)) return 'emergency';
-  if (/status|progress|update|current|ongoing|pending|complete|finished|timeline|when|how long|duration/.test(msg)) return 'status';
-  if (/how|process|steps|procedure|apply|application|submit|get|obtain|rebuild|remove|opt[- ]?out|permit|inspection|documentation|form|paperwork/.test(msg)) return 'process';
-  if (/compare|difference|vs\.?|better|worse|best|cheaper|faster/.test(msg)) return 'comparative';
-  if (/where|location|address|area|region|county|city|zip|altadena|pasadena|los angeles/.test(msg)) return 'location';
-  if (/legal|law|regulation|compliance|requirement|policy|rule|attorney|court/.test(msg)) return 'legal';
-  if (/money|cost|fee|price|pay|fund|grant|insurance|financial|compensation|reimburse/.test(msg)) return 'financial';
-  if (/support|counseling|mental|emotional|stress|trauma|wellbeing|well-being/.test(msg)) return 'emotional_support';
-  if (/eligible|eligibility|qualify|criteria|who can|who is/.test(msg)) return 'eligibility';
-  if (/contact|phone|email|reach|call|speak|talk|address|office|visit/.test(msg)) return 'contact';
-  if (/feedback|complaint|suggestion|report|issue|problem/.test(msg)) return 'feedback';
-  if (msg.split(' ').length < 3) return 'ambiguous';
-  return 'information';
+// Legacy intent classification (kept for backward compatibility)
+// Now delegates to enhanced NLP service
+function classifyIntent(message: string, context?: any): string {
+  const result = enhancedClassifyIntent(message, context);
+  return result.primaryIntent;
 }
 
-// Enhanced bias detection function
+// Legacy bias detection (kept for backward compatibility)
+// Now delegates to advanced bias detection service
 function detectBias(message: string): boolean {
-  // List of loaded/biased words
-  const biasWords = [
-    'should', 'must', 'always', 'never', 'obviously', 'clearly', 'everyone knows', 'no one', 'best', 'worst', 'only', 'all', 'none', 'mandatory', 'required', 'illegal', 'unethical', 'irresponsible', 'stupid', 'dumb', 'idiot', 'fool', 'hate', 'love', 'discriminate', 'racist', 'sexist', 'biased', 'prejudice', 'unfair', 'unjust', 'disadvantage', 'privilege', 'minority', 'majority', 'oppressed', 'oppressor'
-  ];
-  const msg = message.toLowerCase();
-  return biasWords.some(word => msg.includes(word));
+  const analysis = analyzeBias(message);
+  return analysis.detected;
 }
 
 // Improved ambiguity detection
@@ -252,11 +246,20 @@ router.post('/', async (req: Request, res: Response) => {
     });
   }
 
-  // Classify intent
-  const intent = classifyIntent(message);
-  // Detect bias and ambiguity
-  const bias = detectBias(message);
-  const ambiguous = detectAmbiguity(message, intent);
+  // Sprint 2: Enhanced NLP intent classification
+  const intentResult = enhancedClassifyIntent(message, {
+    location: context?.location,
+    topic: context?.topic,
+    pageContext: convContext.pageContext,
+    conversationHistory: convContext.history
+  });
+  const intent = intentResult.primaryIntent;
+  const entities = intentResult.entities;
+  const ambiguous = intentResult.requiresClarification || detectAmbiguity(message, intent);
+
+  // Sprint 2: Advanced bias detection
+  const biasAnalysis = analyzeBias(message);
+  const bias = biasAnalysis.detected;
 
   // Enforce HTTPS if not already
   if (process.env.NODE_ENV === 'production') {
@@ -275,7 +278,10 @@ router.post('/', async (req: Request, res: Response) => {
     
     // If ambiguous, return a clarifying prompt with friendly tone
     if (ambiguous) {
-      const clarificationText = "I'd love to help you, but I'm not quite sure what you're asking. Could you please provide more details or rephrase your question? I'm here to assist with fire recovery information, permits, debris removal, rebuilding processes, and more.";
+      // Use enhanced NLP clarifications if available
+      const clarificationText = intentResult.suggestedClarifications && intentResult.suggestedClarifications.length > 0
+        ? intentResult.suggestedClarifications[0]
+        : "I'd love to help you, but I'm not quite sure what you're asking. Could you please provide more details or rephrase your question? I'm here to assist with fire recovery information, permits, debris removal, rebuilding processes, and more.";
 
       // Add bot clarification to history
       convContext.history.push({ sender: 'bot', text: clarificationText });
@@ -283,21 +289,34 @@ router.post('/', async (req: Request, res: Response) => {
 
       // Store user message and bot clarification in database
       if (conversation && conversationId) {
-        await ConversationsService.addMessage(conversationId, 'user', message, { intent, ambiguous: true });
-        await ConversationsService.addMessage(conversationId, 'bot', clarificationText, { intent, ambiguous: true, confidence: 0.3 });
+        await ConversationsService.addMessage(conversationId, 'user', message, {
+          intent,
+          ambiguous: true,
+          intentConfidence: intentResult.confidence,
+          entities
+        });
+        await ConversationsService.addMessage(conversationId, 'bot', clarificationText, {
+          intent,
+          ambiguous: true,
+          confidence: 0.3
+        });
       }
 
-      // Generate clarification options
-      const clarificationOptions = generateClarificationOptions(message, convContext);
+      // Use enhanced clarification options
+      const clarificationOptions = intentResult.suggestedClarifications || generateClarificationOptions(message, convContext);
+
       return res.json({
         response: clarificationText,
-        confidence: 0.3,
+        confidence: intentResult.confidence,
         bias,
+        biasAnalysis: biasAnalysis,
         uncertainty: true,
         context: convContext,
         grounded: false,
         hallucination: false,
         intent,
+        secondaryIntents: intentResult.secondaryIntents,
+        entities,
         ambiguous: true,
         history: convContext.history,
         clarificationOptions
@@ -365,13 +384,36 @@ router.post('/', async (req: Request, res: Response) => {
       answer = selected.text;
     }
     
+    // Sprint 2: Fact-checking the AI response
+    const factCheckResult = factCheck(answer, {
+      location: entities.location || context?.location,
+      topic: entities.topic || context?.topic,
+      intent
+    });
+
+    // Sprint 2: Apply bias correction if needed and bias score is high
+    let correctedAnswer = answer;
+    if (biasAnalysis.detected && biasAnalysis.biasScore > 0.5 && biasAnalysis.correctedText) {
+      correctedAnswer = biasAnalysis.correctedText;
+      console.log('Applied bias correction:', { original: answer.slice(0, 100), corrected: correctedAnswer.slice(0, 100) });
+    }
+
     // Use enhanced response formatting
-    const reply = formatResponse(answer, selected.source, bias);
-    // Log bias if detected
+    const reply = formatResponse(correctedAnswer, selected.source, bias);
+
+    // Log bias if detected with enhanced details
     if (bias) {
       logBiasToFile({
         userMessage: message,
         response: reply,
+        originalResponse: answer,
+        correctedResponse: correctedAnswer,
+        biasAnalysis: {
+          score: biasAnalysis.biasScore,
+          types: biasAnalysis.biasTypes,
+          patterns: biasAnalysis.patterns,
+          suggestions: biasAnalysis.suggestions
+        },
         source: selected.source,
         chunk_index: selected.chunk_index,
         distance: selected.distance,
@@ -395,37 +437,65 @@ router.post('/', async (req: Request, res: Response) => {
         });
       }
     }
-    // Proactive notification
-    const notification = getProactiveNotification(message, convContext);
+    // Sprint 2: Enhanced proactive notifications
+    const notifications = getProactiveNotifications({
+      location: entities.location || context?.location,
+      topic: entities.topic || context?.topic,
+      userHistory: convContext.history?.map((h: any) => h.text) || []
+    });
+    const notification = notifications.length > 0 ? notifications[0] : null;
 
-    // Human-in-the-loop handoff detection
-    function shouldHandoff(message: string, convContext: any) {
-      const msg = message.toLowerCase();
-      if (/human|agent|contact|real person|talk to|speak to|help/.test(msg)) return true;
-      // If 3+ ambiguous/failed turns in a row
-      const last3 = (convContext.history || []).slice(-3);
-      const ambiguousCount = last3.filter((t: any) => t.sender === 'bot' && t.text && t.text.toLowerCase().includes('not quite sure')).length;
-      if (ambiguousCount >= 3) return true;
-      return false;
+    // Sprint 3: Interest-based suggestions
+    const suggestions = getUserSuggestions({
+      conversationHistory: convContext.history,
+      pageContext: convContext.pageContext,
+      userProfile: convContext.userProfile,
+      viewedSuggestions: convContext.viewedSuggestions || []
+    });
+
+    // Sprint 2: Enhanced human handoff detection
+    const handoffTrigger = checkHandoffTriggers({
+      confidence: intentResult.confidence,
+      biasScore: biasAnalysis.biasScore,
+      hallucinationRisk: factCheckResult.hallucinationRisk,
+      intent: intent,
+      message: message,
+      conversationHistory: convContext.history
+    });
+
+    let handoffRequired = handoffTrigger.shouldHandoff;
+    let handoffMessage = null;
+    let handoffContact = null;
+
+    if (handoffRequired) {
+      handoffMessage = getHandoffMessage(handoffTrigger);
+      handoffContact = getHandoffContact(handoffTrigger, entities.location || context?.location);
+      console.log('Human handoff triggered:', {
+        reason: handoffTrigger.reason,
+        priority: handoffTrigger.priority,
+        expert: handoffTrigger.suggestedExpert
+      });
     }
 
-    let handoffRequired = false;
-    let handoffMethod = null;
-    if (shouldHandoff(message, convContext)) {
-      handoffRequired = true;
-      handoffMethod = 'email';
-    }
-
-    // Log user message event with new analytics service
+    // Log user message event with Sprint 2 enhanced metadata
     await AnalyticsService.logEvent({
       user_id: userId,
       conversation_id: conversationId || undefined,
       event_type: 'user_message',
       message,
-      metadata: { userProfile, userEmail, intent }
+      metadata: {
+        userProfile,
+        userEmail,
+        intent,
+        intentConfidence: intentResult.confidence,
+        secondaryIntents: intentResult.secondaryIntents,
+        entities,
+        biasDetected: bias,
+        biasScore: biasAnalysis.biasScore
+      }
     });
 
-    // Store user message in conversation history
+    // Store user message in conversation history with Sprint 2 metadata
     if (conversation && conversationId) {
       await ConversationsService.addMessage(
         conversationId,
@@ -433,8 +503,12 @@ router.post('/', async (req: Request, res: Response) => {
         message,
         {
           intent,
+          intentConfidence: intentResult.confidence,
+          secondaryIntents: intentResult.secondaryIntents,
+          entities,
           confidence,
           bias,
+          biasScore: biasAnalysis.biasScore,
           ambiguous
         }
       );
@@ -443,16 +517,29 @@ router.post('/', async (req: Request, res: Response) => {
     // Use enhanced response formatting
     const replyFormatted = formatResponse(reply, selected.source, bias);
 
-    // Log bot response event
+    // Log bot response event with Sprint 2 metadata
     await AnalyticsService.logEvent({
       user_id: userId,
       conversation_id: conversationId || undefined,
       event_type: 'bot_response',
       message: replyFormatted,
-      metadata: { intent, bias, ambiguous, alternatives, notification, confidence }
+      metadata: {
+        intent,
+        bias,
+        biasScore: biasAnalysis.biasScore,
+        ambiguous,
+        alternatives,
+        notification,
+        notifications: notifications.map(n => ({ type: n.type, priority: n.priority })),
+        confidence,
+        factCheckReliability: factCheckResult.reliability,
+        hallucinationRisk: factCheckResult.hallucinationRisk,
+        handoffRequired,
+        handoffReason: handoffRequired ? handoffTrigger.reason : null
+      }
     });
 
-    // Store bot response in conversation history
+    // Store bot response in conversation history with Sprint 2 metadata
     if (conversation && conversationId) {
       await ConversationsService.addMessage(
         conversationId,
@@ -462,19 +549,28 @@ router.post('/', async (req: Request, res: Response) => {
           intent,
           confidence,
           bias,
-          ambiguous
+          biasScore: biasAnalysis.biasScore,
+          ambiguous,
+          factCheckReliability: factCheckResult.reliability,
+          hallucinationRisk: factCheckResult.hallucinationRisk,
+          handoffRequired
         }
       );
     }
 
-    // Log handoff event if needed
+    // Log handoff event if needed with enhanced metadata
     if (handoffRequired) {
       await AnalyticsService.logEvent({
         user_id: userId,
         conversation_id: conversationId || undefined,
         event_type: 'handoff',
         message,
-        metadata: { handoffMethod }
+        metadata: {
+          reason: handoffTrigger.reason,
+          priority: handoffTrigger.priority,
+          suggestedExpert: handoffTrigger.suggestedExpert,
+          contextSummary: handoffTrigger.contextSummary
+        }
       });
     }
 
@@ -482,10 +578,27 @@ router.post('/', async (req: Request, res: Response) => {
       response: replyFormatted,
       confidence,
       bias,
-      uncertainty: confidence < 0.4,
+      // Sprint 2: Enhanced bias analysis
+      biasAnalysis: {
+        detected: biasAnalysis.detected,
+        score: biasAnalysis.biasScore,
+        types: biasAnalysis.biasTypes,
+        severity: biasAnalysis.biasScore > 0.7 ? 'high' : biasAnalysis.biasScore > 0.4 ? 'medium' : 'low',
+        corrected: biasAnalysis.correctedText !== undefined
+      },
+      uncertainty: confidence < 0.4 || factCheckResult.reliability === 'low' || factCheckResult.reliability === 'unverified',
       context: convContext,
-      grounded: true,
-      hallucination: false,
+      grounded: factCheckResult.verified,
+      // Sprint 2: Fact-checking results
+      hallucination: factCheckResult.hallucinationRisk > 0.6,
+      hallucinationRisk: factCheckResult.hallucinationRisk,
+      factCheck: {
+        verified: factCheckResult.verified,
+        reliability: factCheckResult.reliability,
+        sources: factCheckResult.sources.map(s => s.name),
+        conflicts: factCheckResult.conflicts.length > 0 ? factCheckResult.conflicts : undefined,
+        recommendations: factCheckResult.recommendations
+      },
       source: selected.source,
       chunk_index: selected.chunk_index,
       distance: selected.distance,
@@ -495,12 +608,28 @@ router.post('/', async (req: Request, res: Response) => {
         chunk_index: m.chunk_index,
         score: m.distance
       })),
+      // Sprint 2: Enhanced intent classification
       intent,
+      intentConfidence: intentResult.confidence,
+      secondaryIntents: intentResult.secondaryIntents,
+      entities,
       ambiguous: false,
       history: convContext.history,
       ...(alternatives.length > 0 ? { alternatives } : {}),
+      // Sprint 2: Enhanced proactive notifications
       ...(notification ? { notification } : {}),
-      ...(handoffRequired ? { handoffRequired, handoffMethod } : {})
+      ...(notifications.length > 1 ? { notifications } : {}),
+      // Sprint 3: Interest-based suggestions
+      ...(suggestions.length > 0 ? { suggestions } : {}),
+      // Sprint 2: Enhanced human handoff
+      ...(handoffRequired ? {
+        handoffRequired,
+        handoffReason: handoffTrigger.reason,
+        handoffPriority: handoffTrigger.priority,
+        handoffMessage,
+        handoffContact,
+        handoffExpert: handoffTrigger.suggestedExpert
+      } : {})
     });
   } catch (err) {
     console.error('Chat endpoint error:', err);
