@@ -350,7 +350,7 @@ cd apps/chatbot-frontend && npm start
 If you're still having issues:
 
 1. Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-2. Run health check: `./health-check.sh`
+2. Run health check: `./scripts/testing/health-check.sh`
 3. Check backend logs: `tail -f /tmp/backend.log`
 4. Check frontend logs: `tail -f /tmp/frontend.log`
 

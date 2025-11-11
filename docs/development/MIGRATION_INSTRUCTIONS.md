@@ -124,7 +124,7 @@ Once the migration is complete:
 ## Next Steps
 
 1. Apply the migration (follow instructions above)
-2. Run integration tests: `./test-phase6-simple.sh`
+2. Run integration tests: `./scripts/testing/test-phase6-simple.sh`
 3. Verify all 8 tests pass
 4. Continue with Phase 6 completion
 

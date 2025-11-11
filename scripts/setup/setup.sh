@@ -22,11 +22,17 @@ fi
 
 echo "✅ Node.js version $NODE_VERSION is compatible"
 
+# Get script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT"
+
 # Run migration script if it exists
-if [ -f "./migration-script.sh" ]; then
+MIGRATION_SCRIPT="$SCRIPT_DIR/migration-script.sh"
+if [ -f "$MIGRATION_SCRIPT" ]; then
     echo "📦 Running migration script..."
-    chmod +x ./migration-script.sh
-    ./migration-script.sh
+    chmod +x "$MIGRATION_SCRIPT"
+    "$MIGRATION_SCRIPT"
 else
     echo "⚠️  Migration script not found. Make sure to copy your files manually."
 fi

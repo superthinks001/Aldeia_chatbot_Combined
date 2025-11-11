@@ -15,10 +15,10 @@ docker-compose up -d
 # 2. Wait 30 seconds for services to initialize
 
 # 3. Check health
-./health-check.sh
+./scripts/testing/health-check.sh
 
 # 4. Run automated tests
-./run-all-tests.sh
+./scripts/testing/run-all-tests.sh
 
 # 5. Open frontend in browser
 open http://localhost:3000
@@ -41,7 +41,7 @@ cd apps/backend && npm run dev
 cd apps/chatbot-frontend && npm start
 
 # Terminal 4: Run health check
-./health-check.sh
+./scripts/testing/health-check.sh
 ```
 
 ---
@@ -53,7 +53,7 @@ cd apps/chatbot-frontend && npm start
 curl http://localhost:3001/api/health && echo "✅ Backend OK"
 
 # Or use the script
-./health-check.sh
+./scripts/testing/health-check.sh
 ```
 
 **Expected Output**:
@@ -125,7 +125,7 @@ curl -X POST http://localhost:3001/api/chat \
 
 ```bash
 # Run comprehensive test suite
-./run-all-tests.sh
+./scripts/testing/run-all-tests.sh
 ```
 
 **Expected**: 80-100% pass rate (ChromaDB is optional)
@@ -227,7 +227,7 @@ curl http://localhost:3001/api/health
    # Or direct logs
    cd apps/backend && npm run dev
    ```
-5. **Use automated tests** (`./run-all-tests.sh`) to verify everything
+5. **Use automated tests** (`./scripts/testing/run-all-tests.sh`) to verify everything
 
 ---
 
@@ -236,12 +236,12 @@ curl http://localhost:3001/api/health
 Once all tests pass:
 
 1. ✅ Review [TESTING_GUIDE.md](TESTING_GUIDE.md) for comprehensive tests
-2. ✅ Run code quality checks: `./code-quality-check.sh`
+2. ✅ Run code quality checks: `./scripts/quality/code-quality-check.sh`
 3. ✅ Review [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment
-4. ✅ Run deployment validation: `./validate-deployment.sh`
+4. ✅ Run deployment validation: `./scripts/deployment/validate-deployment.sh`
 
 ---
 
 **You're ready to go!** 🚀
 
-Start testing with: `./run-all-tests.sh`
+Start testing with: `./scripts/testing/run-all-tests.sh`

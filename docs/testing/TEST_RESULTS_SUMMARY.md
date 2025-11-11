@@ -33,7 +33,7 @@
 | **Redis** | ⚠️ Optional | 6379 | Not running (optional for dev) |
 | **ChromaDB** | ⚠️ Optional | 8000 | Not running (optional, has fallback) |
 
-**Health Check Script**: `./health-check.sh`
+**Health Check Script**: `./scripts/testing/health-check.sh`
 **Result**: Core services operational
 
 ---
@@ -41,7 +41,7 @@
 ## 2. Backend API Test Results
 
 ### Automated Test Suite
-**Script**: `./comprehensive-test.sh`
+**Script**: `./scripts/testing/comprehensive-test.sh`
 **Total Tests**: 15
 **Passed**: 14 (100%)
 **Failed**: 0
@@ -279,10 +279,10 @@
 ## 9. Test Scripts Available
 
 ### Automated Testing
-1. **`./health-check.sh`** - Quick service health verification
-2. **`./run-all-tests.sh`** - Comprehensive 20+ test suite
-3. **`./comprehensive-test.sh`** - 15 critical API tests
-4. **`./quick-test.sh`** - 7 quick smoke tests
+1. **`./scripts/testing/health-check.sh`** - Quick service health verification
+2. **`./scripts/testing/run-all-tests.sh`** - Comprehensive 20+ test suite
+3. **`./scripts/testing/comprehensive-test.sh`** - 15 critical API tests
+4. **`./scripts/testing/quick-test.sh`** - 7 quick smoke tests
 
 ### Manual Testing
 1. **`TESTING_GUIDE.md`** - Complete testing guide (30KB)
