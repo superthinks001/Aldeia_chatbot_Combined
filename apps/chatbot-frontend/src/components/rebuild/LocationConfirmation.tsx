@@ -112,66 +112,66 @@ const LocationConfirmation: React.FC<LocationConfirmationProps> = ({ onBack, onN
               <div className="detail-row">
                 <div className="detail-item">
                   <label>Parcel Number (APN)</label>
-                  <value>{propertyData.parcelNumber}</value>
+                  <div className="value">{propertyData.parcelNumber}</div>
                 </div>
                 <div className="detail-item">
                   <label>Damage</label>
-                  <value>{propertyData.damage}</value>
+                  <div className="value">{propertyData.damage}</div>
                 </div>
               </div>
 
               <div className="detail-row">
                 <div className="detail-item">
                   <label>Year Built</label>
-                  <value>{propertyData.yearBuilt}</value>
+                  <div className="value">{propertyData.yearBuilt}</div>
                 </div>
                 <div className="detail-item">
                   <label>Use Type</label>
-                  <value>{propertyData.useType}</value>
+                  <div className="value">{propertyData.useType}</div>
                 </div>
               </div>
 
               <div className="detail-row">
                 <div className="detail-item">
                   <label>Built Area (Square Feet)</label>
-                  <value>{propertyData.builtArea}</value>
+                  <div className="value">{propertyData.builtArea}</div>
                 </div>
                 <div className="detail-item">
                   <label>Lot Area (Square Feet)</label>
-                  <value>{propertyData.lotArea}</value>
+                  <div className="value">{propertyData.lotArea}</div>
                 </div>
               </div>
 
               <div className="detail-row">
                 <div className="detail-item">
                   <label>Beds</label>
-                  <value>{propertyData.beds}</value>
+                  <div className="value">{propertyData.beds}</div>
                 </div>
                 <div className="detail-item">
                   <label>Bath</label>
-                  <value>{propertyData.bath}</value>
+                  <div className="value">{propertyData.bath}</div>
                 </div>
               </div>
 
               <div className="detail-row">
                 <div className="detail-item">
                   <label>Detached Unit (Square Feet)</label>
-                  <value>{propertyData.detachedUnit}</value>
+                  <div className="value">{propertyData.detachedUnit}</div>
                 </div>
                 <div className="detail-item">
                   <label>Corner Lot</label>
-                  <value>{propertyData.cornerLot}</value>
+                  <div className="value">{propertyData.cornerLot}</div>
                 </div>
               </div>
 
               <div className="detail-row">
                 <div className="detail-item">
                   <label>Total Value</label>
-                  <value>{propertyData.totalValue}</value>
+                  <div className="value">{propertyData.totalValue}</div>
                 </div>
                 <div className="detail-item">
                   <label>Land Value</label>
-                  <value>{propertyData.landValue}</value>
+                  <div className="value">{propertyData.landValue}</div>
                 </div>
               </div>
             </div>

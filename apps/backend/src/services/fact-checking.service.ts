@@ -14,7 +14,7 @@ export interface FactCheckResult {
   confidence: number;
   sources: AuthoritativeSource[];
   conflicts: Conflict[];
-  hallucination Risk: number; // 0-1
+  hallucinationRisk: number; // 0-1
   reliability: 'high' | 'medium' | 'low' | 'unverified';
   recommendations: string[];
 }

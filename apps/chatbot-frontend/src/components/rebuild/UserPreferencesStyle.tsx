@@ -122,11 +122,11 @@ const UserPreferencesStyle: React.FC<UserPreferencesStyleProps> = ({
             <div className="style-details">
               <div className="style-detail">
                 <label>Architecture Character</label>
-                <value>{styleData.architectureStyle}</value>
+                <div className="value">{styleData.architectureStyle}</div>
               </div>
               <div className="style-detail">
                 <label>Roof Type</label>
-                <value>{styleData.roofType}</value>
+                <div className="value">{styleData.roofType}</div>
               </div>
             </div>
           </div>
