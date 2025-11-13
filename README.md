@@ -31,9 +31,14 @@ aldeia-combined/
 
 ### Installation
 
-1. **Run the migration script** (if not done already):
+1. **Run the setup script** (if not done already):
    ```bash
-   ./migration-script.sh
+   ./scripts/setup/setup.sh
+   ```
+
+   Or run the migration script manually:
+   ```bash
+   ./scripts/setup/migration-script.sh /path/to/old/project
    ```
 
 2. **Install dependencies**:

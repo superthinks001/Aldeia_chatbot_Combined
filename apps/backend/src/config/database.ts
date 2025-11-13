@@ -33,7 +33,7 @@ export const supabase: SupabaseClient = createClient(
 // ============================================
 
 const useSQLite = process.env.USE_SQLITE === 'true';
-const sqliteDbPath = path.join(__dirname, '../../../data/aldeia.db');
+const sqliteDbPath = path.join(__dirname, '../../../../data/aldeia.db');
 
 export const sqlite = useSQLite
   ? new sqlite3.Database(sqliteDbPath)

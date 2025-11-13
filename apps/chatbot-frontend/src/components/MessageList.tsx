@@ -5,6 +5,7 @@ import EthicalAIIndicators from './EthicalAIIndicators';
 export interface Message {
   sender: 'user' | 'bot' | 'docs';
   text?: string;
+  timestamp?: Date | string;
   confidence?: number;
   bias?: boolean;
   uncertainty?: boolean;
